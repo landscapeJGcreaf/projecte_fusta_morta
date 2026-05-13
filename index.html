@@ -91,17 +91,18 @@
 
     /* COORDS */
     #coords{
-      position:absolute;bottom:40px;left:16px;z-index:10;
+      position:absolute;bottom:52px;left:16px;z-index:10;
       background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-      box-shadow:var(--shadow);padding:6px 10px;font-family:var(--mono);font-size:11px;color:var(--muted);pointer-events:none
+      box-shadow:var(--shadow);padding:6px 10px;font-family:var(--mono);font-size:11px;color:var(--muted);pointer-events:none;white-space:nowrap
     }
 
     /* BASEMAP */
-    #bm{position:absolute;bottom:16px;right:16px;z-index:10;display:flex;gap:4px}
+    #bm{position:absolute;bottom:16px;left:16px;z-index:10;display:flex;gap:4px}
     .bb{padding:6px 10px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
     .bb:hover{color:var(--text);border-color:var(--text)}
     .bb.active{background:var(--text);color:#fff;border-color:var(--text)}
     .maplibregl-ctrl-group{border-radius:var(--radius)!important;border:1px solid var(--border)!important;box-shadow:var(--shadow)!important;overflow:hidden}
+    .maplibregl-ctrl-bottom-left{left:200px!important}
   </style>
 </head>
 <body>
@@ -110,7 +111,7 @@
 <div id="header">
   <div class="dot"></div>
   <h1>Visor GIS</h1>
-  <span class="sub">Fusta morta · Barcelona</span>
+  <span class="sub">Patrimoni verd · Barcelona</span>
 </div>
 
 <div id="search-box">
@@ -231,12 +232,12 @@ map.on('load',()=>{
   const lats=ARBRES.features.map(f=>f.geometry.coordinates[1]);
   map.fitBounds([[Math.min(...lngs),Math.min(...lats)],[Math.max(...lngs),Math.max(...lats)]],{padding:60,maxZoom:13});
 
-  // ── DISTRICTES ──
+  // ── DISTRICTES (primer, al fons) ──
   map.addSource('dist-src',{type:'geojson',data:DISTRICTES});
   map.addLayer({id:'dist-fill',type:'fill',source:'dist-src',
-    paint:{'fill-color':'#1a4a6b','fill-opacity':0.06}});
+    paint:{'fill-color':'#1a4a6b','fill-opacity':0.07}});
   map.addLayer({id:'dist-line',type:'line',source:'dist-src',
-    paint:{'line-color':'#1a4a6b','line-width':1.5,'line-opacity':0.5}});
+    paint:{'line-color':'#1a4a6b','line-width':1.8,'line-opacity':0.6}});
   map.addLayer({id:'dist-label',type:'symbol',source:'dist-src',
     layout:{
       'text-field':['get','nom'],
@@ -245,10 +246,10 @@ map.on('load',()=>{
       'text-letter-spacing':0.08,
       'text-max-width':8
     },
-    paint:{'text-color':'#1a4a6b','text-opacity':0.7,'text-halo-color':'#ffffff','text-halo-width':2}
+    paint:{'text-color':'#1a4a6b','text-opacity':0.75,'text-halo-color':'#ffffff','text-halo-width':2}
   });
 
-  // ── ARBRES (amb clustering) ──
+  // ── ARBRES (per sobre dels districtes) ──
   map.addSource('arbres-src',{type:'geojson',data:ARBRES,cluster:true,clusterMaxZoom:14,clusterRadius:40});
 
   map.addLayer({id:'cl-halo',type:'circle',source:'arbres-src',filter:['has','point_count'],
@@ -319,27 +320,38 @@ function showBioPopup(lngLat,p){
 
 // ── EVENTS ──
 function initEvents(){
-  map.on('click','dist-fill',e=>{
-    const p=e.features[0].properties;
-    popup.setLngLat(e.lngLat).setHTML(`
-      <div class="pi">
-        <div class="pic">🏙️</div>
-        <div class="pt">${p.nom}</div>
-        <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
-        <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
-      </div>`).addTo(map);
-  });
-  map.on('mouseenter','dist-fill',()=>map.getCanvas().style.cursor='pointer');
-  map.on('mouseleave','dist-fill',()=>map.getCanvas().style.cursor='');
+  // Click intel·ligent: prioritza punts sobre polígons
+  map.on('click', e => {
+    const arbres  = map.queryRenderedFeatures(e.point, {layers:['arbres']});
+    const bio     = map.queryRenderedFeatures(e.point, {layers:['biotroncs']});
+    const cumuls  = map.queryRenderedFeatures(e.point, {layers:['cumuls']});
+    const dist    = map.queryRenderedFeatures(e.point, {layers:['dist-fill']});
 
-  map.on('click','arbres',e=>showArbrePopup(e.lngLat,e.features[0].properties));
+    if (arbres.length)       { showArbrePopup(e.lngLat, arbres[0].properties); }
+    else if (bio.length)     { showBioPopup(e.lngLat, bio[0].properties); }
+    else if (cumuls.length)  { showBioPopup(e.lngLat, cumuls[0].properties); }
+    else if (dist.length)    {
+      const p = dist[0].properties;
+      popup.setLngLat(e.lngLat).setHTML(`
+        <div class="pi">
+          <div class="pic">🏙️</div>
+          <div class="pt">${p.nom}</div>
+          <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
+          <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
+        </div>`).addTo(map);
+    }
+  });
+
+  // Cursor
+  map.on('mousemove', e => {
+    const hits = map.queryRenderedFeatures(e.point, {layers:['arbres','biotroncs','cumuls','dist-fill']});
+    const pts  = map.queryRenderedFeatures(e.point, {layers:['arbres','biotroncs','cumuls']});
+    map.getCanvas().style.cursor = hits.length ? (pts.length ? 'pointer' : 'pointer') : '';
+  });
   map.on('click','biotroncs',e=>showBioPopup(e.lngLat,e.features[0].properties));
   map.on('click','cumuls',e=>showBioPopup(e.lngLat,e.features[0].properties));
 
-  ['arbres','biotroncs','cumuls'].forEach(l=>{
-    map.on('mouseenter',l,()=>map.getCanvas().style.cursor='pointer');
-    map.on('mouseleave',l,()=>map.getCanvas().style.cursor='');
-  });
+
 
   map.on('click','cl-halo',e=>{
     const f=map.queryRenderedFeatures(e.point,{layers:['cl-halo']})[0];
