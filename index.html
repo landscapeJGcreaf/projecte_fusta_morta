@@ -91,13 +91,13 @@
 
     /* COORDS */
     #coords{
-      position:absolute;bottom:52px;left:16px;z-index:10;
+      position:absolute;bottom:16px;left:16px;z-index:10;
       background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-      box-shadow:var(--shadow);padding:6px 10px;font-family:var(--mono);font-size:11px;color:var(--muted);pointer-events:none;white-space:nowrap
+      box-shadow:var(--shadow);padding:4px 8px;font-family:var(--mono);font-size:10px;color:var(--muted);pointer-events:none;white-space:nowrap;opacity:0.8
     }
 
     /* BASEMAP */
-    #bm{position:absolute;bottom:16px;left:16px;z-index:10;display:flex;gap:4px}
+    #bm{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:4px}
     .bb{padding:6px 10px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
     .bb:hover{color:var(--text);border-color:var(--text)}
     .bb.active{background:var(--text);color:#fff;border-color:var(--text)}
