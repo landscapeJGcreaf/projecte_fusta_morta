@@ -100,6 +100,9 @@
     .bb{padding:6px 10px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
     .bb:hover{color:var(--text);border-color:var(--text)}
     .bb.active{background:var(--text);color:#fff;border-color:var(--text)}
+    #creaf-logo{position:absolute;bottom:16px;right:56px;z-index:10;}
+    #creaf-logo img{height:32px;opacity:.85;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15));transition:opacity .2s}
+    #creaf-logo img:hover{opacity:1}
   </style>
 </head>
 <body>
@@ -184,6 +187,12 @@
 </div>
 
 <div id="coords">Lat: — | Lon: —</div>
+<div id="creaf-logo">
+  <a href="https://www.creaf.cat" target="_blank">
+    <img src="https://www.creaf.cat/sites/default/files/styles/max_325x325/theme/paltana/images/logos/es/logo.png" alt="CREAF"/>
+  </a>
+</div>
+
 <div id="bm">
   <button class="bb active" onclick="setBM('osm',this)">OSM</button>
   <button class="bb" onclick="setBM('topo',this)">Topo</button>
