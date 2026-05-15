@@ -141,6 +141,10 @@
         <label class="toggle"><input type="checkbox" onchange="toggleLayer('picots',this.checked)"><span class="tt"></span></label>
       </div>
       <div class="li">
+        <div class="ll"><div class="sw" style="background:#7bc77c;border-radius:2px;border:1px solid #555"></div>Zones Interès Natural</div>
+        <label class="toggle"><input type="checkbox" onchange="toggleLayer('zin',this.checked)"><span class="tt"></span></label>
+      </div>
+      <div class="li">
         <div class="ll"><div class="sw" style="background:#1a4a6b;border-radius:2px;opacity:.7"></div>Districtes</div>
         <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('districtes',this.checked)"><span class="tt"></span></label>
       </div>
@@ -156,6 +160,9 @@
       <div class="leg" id="leg-picots-1"><div class="ld" style="background:#e8a000"></div>Picot garser gros</div>
       <div class="leg" id="leg-picots-2"><div class="ld" style="background:#c0392b"></div>Picot garser petit</div>
       <div class="leg" id="leg-picots-3"><div class="ld" style="background:#27ae60"></div>Picot verd ibèric</div>
+      <div class="leg" id="leg-zin-1"><div class="ld" style="background:#7bc77c;opacity:.8;border-radius:2px;width:16px;height:10px;border:1px solid #232323"></div>ZIN Llenyós</div>
+      <div class="leg" id="leg-zin-2"><div class="ld" style="background:#f7fcf5;border-radius:2px;width:16px;height:10px;border:2px solid #0000ff"></div>ZIN Herbaci</div>
+      <div class="leg" id="leg-zin-3"><div class="ld" style="background:#00441b;opacity:.5;border-radius:2px;width:16px;height:10px;border:1px solid #232323"></div>ZINA</div>
       <div class="leg" id="leg-districtes"><div class="ld" style="background:#1a4a6b;opacity:.5;border-radius:2px;width:16px;height:10px"></div>Límit de districte</div>
     </div>
   </div>
@@ -219,17 +226,19 @@ const DATA = {};
 map.on('load', async () => {
   try {
     setMsg('Carregant districtes…');
-    const [arbres, biotroncs, districtes, picots] = await Promise.all([
+    const [arbres, biotroncs, districtes, picots, zin] = await Promise.all([
       fetch('dades/arbres_interes_local.geojson').then(r=>r.json()),
       fetch('dades/biotroncs.geojson').then(r=>r.json()),
       fetch('dades/districtes_unitats.geojson').then(r=>r.json()),
       fetch('dades/barcelona_picots_20-26.geojson').then(r=>r.json()),
+      fetch('dades/zin_zina.geojson').then(r=>r.json()),
     ]);
 
     // Guarda per la taula
     DATA.arbres   = arbres.features;
     DATA.bio      = biotroncs.features;
     DATA.picots   = picots.features;
+    DATA.zin      = zin.features;
 
     // Recomptes
     document.getElementById('cnt-arbres').textContent  = arbres.features.length;
@@ -241,10 +250,22 @@ map.on('load', async () => {
     const lats=arbres.features.map(f=>f.geometry.coordinates[1]);
     map.fitBounds([[Math.min(...lngs),Math.min(...lats)],[Math.max(...lngs),Math.max(...lats)]],{padding:60,maxZoom:13});
 
-    // ── DISTRICTES (fons) ──
+    // ── ZIN / ZINA (per sota de districtes) ──
+    map.addSource('zin-src',{type:'geojson',data:zin});
+    map.addLayer({id:'zin-zina',type:'fill',source:'zin-src',
+      filter:['==',['get','tipus'],'ZINA'],
+      paint:{'fill-color':'#00441b','fill-opacity':0.2,'fill-outline-color':'#23232333'}});
+    map.addLayer({id:'zin-llenyos',type:'fill',source:'zin-src',
+      filter:['==',['get','tipus'],'ZIN LLENYÓS'],
+      paint:{'fill-color':'#7bc77c','fill-opacity':0.2,'fill-outline-color':'#23232333'}});
+    map.addLayer({id:'zin-herbaci',type:'fill',source:'zin-src',
+      filter:['==',['get','tipus'],'ZIN HERBACI'],
+      paint:{'fill-color':'#f7fcf5','fill-opacity':0.5,'fill-outline-color':'#0000ff'}});
+
+    // ── DISTRICTES (sempre al damunt de ZIN) ──
     map.addSource('dist-src',{type:'geojson',data:districtes});
     map.addLayer({id:'dist-fill',type:'fill',source:'dist-src',paint:{'fill-color':'#1a4a6b','fill-opacity':0.07}});
-    map.addLayer({id:'dist-line',type:'line',source:'dist-src',paint:{'line-color':'#1a4a6b','line-width':1.8,'line-opacity':0.6}});
+    map.addLayer({id:'dist-line',type:'line',source:'dist-src',paint:{'line-color':'#1a4a6b','line-width':1.8,'line-opacity':0.6,'line-dasharray':[4,3]}});
     map.addLayer({id:'dist-label',type:'symbol',source:'dist-src',layout:{'text-field':['get','nom'],'text-font':['Open Sans Bold','Arial Unicode MS Bold'],'text-size':11,'text-transform':'uppercase','text-letter-spacing':0.08,'text-max-width':8},paint:{'text-color':'#1a4a6b','text-opacity':0.75,'text-halo-color':'#ffffff','text-halo-width':2}});
 
     // ── PICOTS ──
@@ -284,6 +305,21 @@ map.on('load', async () => {
 // ── POPUPS ────────────────────────────────────────────────────────────────────
 const popup = new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:14});
 
+function showZinPopup(lngLat,p){
+  const colors={'ZIN LLENYÓS':'#7bc77c','ZIN HERBACI':'#0000ff','ZINA':'#00441b'};
+  const color=colors[p.tipus]||'#7b4f9e';
+  const supHa = p.sup_m2 ? (p.sup_m2/10000).toFixed(2)+' ha' : '—';
+  popup.setLngLat(lngLat).setHTML(`
+    <div class="pi">
+      <div class="pic">🌿</div>
+      <div class="ptag" style="background:${color}22;color:${color}">${p.tipus||'—'}</div>
+      <div class="pt">${p.codi||'Sense codi'}</div>
+      <div class="pr"><span class="pk">subtipus</span><span class="pv">${p.tipus_sub||'—'}</span></div>
+      <div class="pr"><span class="pk">superfície</span><span class="pv">${supHa}</span></div>
+      <div class="pr"><span class="pk">data alta</span><span class="pv">${p.data_alta||'—'}</span></div>
+    </div>`).addTo(map);
+}
+
 function showArbrePopup(lngLat,p){
   const addr=(p.addresse_3||'')+(p.addresse_4?' '+p.addresse_4:'');
   popup.setLngLat(lngLat).setHTML(`<div class="pi"><div class="pic">🌳</div><div class="pt">${p.name||'Arbre sense nom'}</div><div class="pr"><span class="pk">adreça</span><span class="pv">${addr||'—'}</span></div><div class="pr"><span class="pk">barri</span><span class="pv">${p.barri||'—'}</span></div><div class="pr"><span class="pk">districte</span><span class="pv">${p.districte||'—'}</span></div></div>`).addTo(map);
@@ -308,18 +344,20 @@ function initEvents(){
     const bio     = map.queryRenderedFeatures(e.point,{layers:['biotroncs']});
     const cumuls  = map.queryRenderedFeatures(e.point,{layers:['cumuls']});
     const picots  = map.queryRenderedFeatures(e.point,{layers:['picots-garser-gros','picots-garser-petit','picots-verd']});
+    const zinFeats = map.queryRenderedFeatures(e.point,{layers:['zin-llenyos','zin-herbaci','zin-zina']});
     const dist    = map.queryRenderedFeatures(e.point,{layers:['dist-fill']});
     if      (arbres.length)  showArbrePopup(e.lngLat, arbres[0].properties);
     else if (bio.length)     showBioPopup(e.lngLat, bio[0].properties);
     else if (cumuls.length)  showBioPopup(e.lngLat, cumuls[0].properties);
     else if (picots.length)  showPicotPopup(e.lngLat, picots[0].properties);
+    else if (zinFeats.length) { showZinPopup(e.lngLat, zinFeats[0].properties); }
     else if (dist.length)    {
       const p=dist[0].properties;
       popup.setLngLat(e.lngLat).setHTML(`<div class="pi"><div class="pic">🏙️</div><div class="pt">${p.nom}</div><div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div><div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div></div>`).addTo(map);
     }
   });
   map.on('mousemove', e => {
-    const hits=map.queryRenderedFeatures(e.point,{layers:['arbres','biotroncs','cumuls','picots-garser-gros','picots-garser-petit','picots-verd','dist-fill']});
+    const hits=map.queryRenderedFeatures(e.point,{layers:['arbres','biotroncs','cumuls','picots-garser-gros','picots-garser-petit','picots-verd','zin-llenyos','zin-herbaci','zin-zina','dist-fill']});
     map.getCanvas().style.cursor=hits.length?'pointer':'';
   });
   map.on('click','cl-halo', e => {
@@ -336,17 +374,19 @@ const LAYERS={
   biotroncs: ['biotroncs','biotroncs-outer'],
   cumuls:    ['cumuls','cumuls-outer'],
   picots:    ['picots-garser-gros','picots-garser-petit','picots-verd'],
-  districtes:['dist-fill','dist-line','dist-label']
+  districtes:['dist-fill','dist-line','dist-label'],
+  zin:       ['zin-llenyos','zin-herbaci','zin-zina']
 };
 const LEGEND={
   arbres:    ['leg-arbres'],
   biotroncs: ['leg-biotroncs'],
   cumuls:    ['leg-cumuls'],
   picots:    ['leg-picots-1','leg-picots-2','leg-picots-3'],
-  districtes:['leg-districtes']
+  districtes:['leg-districtes'],
+  zin:       ['leg-zin-1','leg-zin-2','leg-zin-3']
 };
 
-const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true};
+const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false};
 
 function toggleLayer(id,v){
   layerState[id] = v;
@@ -433,7 +473,8 @@ function setBM(id,btn){
 const TABLE_CONFIG = {
   arbres: { title:"🌳 Arbres d'interès local", cols:['name','addresse_3','addresse_4','barri','districte'] },
   bio:    { title:"🪵 Bio-troncs i cúmuls",    cols:['nom_espai','tipus','localitzacio','barri','districte'] },
-  picots: { title:"🐦 Observacions de picots", cols:['nom_cat','nom_sci','data','localitat','nombre'] }
+  picots: { title:"🐦 Observacions de picots", cols:['nom_cat','nom_sci','data','localitat','nombre'] },
+  zin:    { title:"🌿 Zones d'Interès Natural",  cols:['tipus','codi','tipus_sub','sup_m2','data_alta'] }
 };
 
 let currentTable = null;
