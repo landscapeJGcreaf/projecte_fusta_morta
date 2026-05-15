@@ -178,6 +178,9 @@
         <div class="stat-box" id="sb-picots" onclick="openTable('picots')"><div class="stat-num" style="color:#e8a000" id="cnt-picots">—</div><div class="stat-lbl">Observacions picots</div></div>
         <div class="stat-box" id="sb-especies"><div class="stat-num" style="color:#555">3</div><div class="stat-lbl">Espècies picots</div></div>
       </div>
+      <div class="stats-row" style="margin-top:8px">
+        <div class="stat-box" id="sb-zin" onclick="openTable('zin')"><div class="stat-num" style="color:#7bc77c" id="cnt-zin">—</div><div class="stat-lbl">Zones Interès Natural</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -244,6 +247,7 @@ map.on('load', async () => {
     document.getElementById('cnt-arbres').textContent  = arbres.features.length;
     document.getElementById('cnt-bio').textContent     = biotroncs.features.length;
     document.getElementById('cnt-picots').textContent  = picots.features.length;
+    document.getElementById('cnt-zin').textContent     = zin.features.length;
 
     // Centra als arbres
     const lngs=arbres.features.map(f=>f.geometry.coordinates[0]);
@@ -404,7 +408,9 @@ function toggleLayer(id,v){
     document.getElementById('sb-picots').classList.toggle('off',!v);
     document.getElementById('sb-especies').classList.toggle('off',!v);
   }
-  // Biotroncs i cúmuls comparteixen sb-bio — amagar només si les dues estan off
+  if(id==='zin'){
+    document.getElementById('sb-zin').classList.toggle('off',!v);
+  }
   if(id==='biotroncs'||id==='cumuls'){
     const hide = !layerState.biotroncs && !layerState.cumuls;
     document.getElementById('sb-bio').classList.toggle('off', hide);
