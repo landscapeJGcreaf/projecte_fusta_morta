@@ -100,8 +100,6 @@
     .bb{padding:6px 10px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
     .bb:hover{color:var(--text);border-color:var(--text)}
     .bb.active{background:var(--text);color:#fff;border-color:var(--text)}
-    .maplibregl-ctrl-group{border-radius:var(--radius)!important;border:1px solid var(--border)!important;box-shadow:var(--shadow)!important;overflow:hidden}
-    .maplibregl-ctrl-bottom-left{left:200px!important}
   </style>
 </head>
 <body>
@@ -196,7 +194,10 @@
 <div id="attr-panel">
   <div id="attr-header">
     <span id="attr-title">Taula d'atributs</span>
-    <button id="attr-close" onclick="closeTable()">✕</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="clear-sel" onclick="clearSelection()" style="display:none;font-family:var(--mono);font-size:10px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--muted);cursor:pointer;letter-spacing:.04em">✕ Netejar selecció</button>
+      <button id="attr-close" onclick="closeTable()">✕</button>
+    </div>
   </div>
   <div id="attr-scroll">
     <table id="attr-table"><thead id="attr-thead"></thead><tbody id="attr-tbody"></tbody></table>
@@ -217,7 +218,25 @@ const map = new maplibregl.Map({
   center:[2.168,41.393],zoom:12,attributionControl:false
 });
 
+// Control personalitzat de reset zoom
+class ResetZoomControl {
+  onAdd(map){
+    this._btn = document.createElement('button');
+    this._btn.className = 'maplibregl-ctrl-icon';
+    this._btn.title = 'Zoom inicial';
+    this._btn.innerHTML = '⌂';
+    this._btn.style.cssText = 'font-size:16px;line-height:1;cursor:pointer;background:none;border:none;padding:0;width:29px;height:29px;display:flex;align-items:center;justify-content:center;color:#333';
+    this._btn.onclick = resetZoom;
+    this._container = document.createElement('div');
+    this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    this._container.appendChild(this._btn);
+    return this._container;
+  }
+  onRemove(){ this._container.parentNode.removeChild(this._container); }
+}
+
 map.addControl(new maplibregl.NavigationControl(),'bottom-right');
+map.addControl(new ResetZoomControl(),'bottom-right');
 map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
 map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
 
@@ -230,11 +249,11 @@ map.on('load', async () => {
   try {
     setMsg('Carregant districtes…');
     const [arbres, biotroncs, districtes, picots, zin] = await Promise.all([
-      fetch('dades/arbres_interes_local.geojson').then(r=>r.json()),
-      fetch('dades/biotroncs.geojson').then(r=>r.json()),
-      fetch('dades/districtes_unitats.geojson').then(r=>r.json()),
-      fetch('dades/barcelona_picots_20-26.geojson').then(r=>r.json()),
-      fetch('dades/zin_zina.geojson').then(r=>r.json()),
+      fetch('dades/arbres_interes_local.geojson').then(r=>{ if(!r.ok) throw new Error('arbres_interes_local.geojson'); return r.json(); }),
+      fetch('dades/biotroncs.geojson').then(r=>{ if(!r.ok) throw new Error('biotroncs.geojson'); return r.json(); }),
+      fetch('dades/districtes_unitats.geojson').then(r=>{ if(!r.ok) throw new Error('districtes_unitats.geojson'); return r.json(); }),
+      fetch('dades/barcelona_picots_20-26.geojson').then(r=>{ if(!r.ok) throw new Error('barcelona_picots_20-26.geojson'); return r.json(); }),
+      fetch('dades/zin_zina.geojson').then(r=>{ if(!r.ok) throw new Error('zin_zina.geojson'); return r.json(); }),
     ]);
 
     // Guarda per la taula
@@ -252,7 +271,8 @@ map.on('load', async () => {
     // Centra als arbres
     const lngs=arbres.features.map(f=>f.geometry.coordinates[0]);
     const lats=arbres.features.map(f=>f.geometry.coordinates[1]);
-    map.fitBounds([[Math.min(...lngs),Math.min(...lats)],[Math.max(...lngs),Math.max(...lats)]],{padding:60,maxZoom:13});
+    window._initialBounds = [[Math.min(...lngs),Math.min(...lats)],[Math.max(...lngs),Math.max(...lats)]];
+    map.fitBounds(window._initialBounds,{padding:60,maxZoom:13});
 
     // ── ZIN / ZINA (per sota de districtes) ──
     map.addSource('zin-src',{type:'geojson',data:zin});
@@ -270,7 +290,6 @@ map.on('load', async () => {
     map.addSource('dist-src',{type:'geojson',data:districtes});
     map.addLayer({id:'dist-fill',type:'fill',source:'dist-src',paint:{'fill-color':'#1a4a6b','fill-opacity':0.07}});
     map.addLayer({id:'dist-line',type:'line',source:'dist-src',paint:{'line-color':'#1a4a6b','line-width':1.8,'line-opacity':0.6,'line-dasharray':[4,3]}});
-    map.addLayer({id:'dist-label',type:'symbol',source:'dist-src',layout:{'text-field':['get','nom'],'text-font':['Open Sans Bold','Arial Unicode MS Bold'],'text-size':11,'text-transform':'uppercase','text-letter-spacing':0.08,'text-max-width':8},paint:{'text-color':'#1a4a6b','text-opacity':0.75,'text-halo-color':'#ffffff','text-halo-width':2}});
 
     // ── PICOTS ──
     map.addSource('picots-src',{type:'geojson',data:picots});
@@ -289,7 +308,6 @@ map.on('load', async () => {
     map.addSource('arbres-src',{type:'geojson',data:arbres,cluster:true,clusterMaxZoom:14,clusterRadius:40});
     map.addLayer({id:'cl-halo',type:'circle',source:'arbres-src',filter:['has','point_count'],paint:{'circle-color':'#2d5a3d','circle-opacity':.15,'circle-radius':['step',['get','point_count'],26,10,36,50,48]}});
     map.addLayer({id:'cl-inner',type:'circle',source:'arbres-src',filter:['has','point_count'],paint:{'circle-color':'#2d5a3d','circle-opacity':.75,'circle-radius':['step',['get','point_count'],14,10,20,50,28]}});
-    map.addLayer({id:'cl-count',type:'symbol',source:'arbres-src',filter:['has','point_count'],layout:{'text-field':'{point_count_abbreviated}','text-font':['Open Sans Bold','Arial Unicode MS Bold'],'text-size':12},paint:{'text-color':'#fff'}});
     map.addLayer({id:'arbres-outer',type:'circle',source:'arbres-src',filter:['!',['has','point_count']],paint:{'circle-radius':9,'circle-color':'#fff'}});
     map.addLayer({id:'arbres',type:'circle',source:'arbres-src',filter:['!',['has','point_count']],paint:{'circle-radius':7,'circle-color':'#2d5a3d','circle-stroke-width':2,'circle-stroke-color':'#fff'}});
 
@@ -378,7 +396,7 @@ const LAYERS={
   biotroncs: ['biotroncs','biotroncs-outer'],
   cumuls:    ['cumuls','cumuls-outer'],
   picots:    ['picots-garser-gros','picots-garser-petit','picots-verd'],
-  districtes:['dist-fill','dist-line','dist-label'],
+  districtes:['dist-fill','dist-line'],
   zin:       ['zin-llenyos','zin-herbaci','zin-zina']
 };
 const LEGEND={
@@ -475,6 +493,10 @@ function setBM(id,btn){
   map.getSource('basemap').setTiles(BM[id]);
 }
 
+function resetZoom(){
+  map.fitBounds(window._initialBounds, {padding:60, maxZoom:13, duration:800});
+}
+
 // ── ATTRIBUTE TABLE ───────────────────────────────────────────────────────────
 const TABLE_CONFIG = {
   arbres: { title:"🌳 Arbres d'interès local", cols:['name','addresse_3','addresse_4','barri','districte'] },
@@ -509,6 +531,17 @@ function openTable(id) {
   document.getElementById('attr-panel').classList.add('open');
 }
 
+function clearSelection() {
+  if (map.getSource('zin-selected-src')) {
+    map.getSource('zin-selected-src').setData({type:'FeatureCollection',features:[]});
+  }
+  document.querySelectorAll('#attr-tbody tr').forEach(tr => {
+    tr.style.background = '';
+    tr.style.fontWeight = '';
+  });
+  document.getElementById('clear-sel').style.display = 'none';
+}
+
 function closeTable() {
   document.getElementById('attr-panel').classList.remove('open');
   currentTable = null;
@@ -517,12 +550,52 @@ function closeTable() {
 function zoomToFeature(id, idx) {
   const feat = (DATA[id]||[])[idx];
   if (!feat) return;
-  const coords = feat.geometry.coordinates;
-  map.flyTo({center:coords, zoom:16, duration:800});
   const p = feat.properties;
-  if      (id==='arbres') showArbrePopup(coords, p);
-  else if (id==='bio')    showBioPopup(coords, p);
-  else if (id==='picots') showPicotPopup(coords, p);
+
+  // Highlight selected row in table
+  document.querySelectorAll('#attr-tbody tr').forEach((tr,i) => {
+    tr.style.background = i===idx ? 'var(--bg)' : '';
+    tr.style.fontWeight = i===idx ? '600' : '';
+  });
+
+  if (id === 'zin') {
+    // Per polígons: calcula el centre i ressalta
+    const geom = feat.geometry;
+    let allCoords = [];
+    if (geom.type === 'MultiPolygon') {
+      geom.coordinates.forEach(poly => poly.forEach(ring => allCoords.push(...ring)));
+    } else if (geom.type === 'Polygon') {
+      geom.coordinates.forEach(ring => allCoords.push(...ring));
+    }
+    const lngs = allCoords.map(c=>c[0]);
+    const lats  = allCoords.map(c=>c[1]);
+    const bounds = [[Math.min(...lngs),Math.min(...lats)],[Math.max(...lngs),Math.max(...lats)]];
+    const centerLng = (bounds[0][0] + bounds[1][0]) / 2;
+    const centerLat = (bounds[0][1] + bounds[1][1]) / 2;
+    map.fitBounds(bounds, {padding:80, maxZoom:18, duration:800});
+
+    // Ressalta el polígon seleccionat
+    if (map.getSource('zin-selected-src')) {
+      map.getSource('zin-selected-src').setData(feat);
+    } else {
+      map.addSource('zin-selected-src', {type:'geojson', data:feat});
+      map.addLayer({id:'zin-selected', type:'fill', source:'zin-selected-src',
+        paint:{'fill-color':'#ffff00','fill-opacity':0.5,'fill-outline-color':'#ff6600'}});
+      map.addLayer({id:'zin-selected-line', type:'line', source:'zin-selected-src',
+        paint:{'line-color':'#ff6600','line-width':2.5}});
+    }
+    // La selecció es manté fins que es faci clic en un altre registre
+    document.getElementById('clear-sel').style.display = 'block';
+
+    showZinPopup([centerLng, centerLat], p);
+
+  } else {
+    const coords = feat.geometry.coordinates;
+    map.flyTo({center:coords, zoom:16, duration:800});
+    if      (id==='arbres') showArbrePopup(coords, p);
+    else if (id==='bio')    showBioPopup(coords, p);
+    else if (id==='picots') showPicotPopup(coords, p);
+  }
 }
 </script>
 </body>
