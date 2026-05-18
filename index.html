@@ -88,8 +88,8 @@
     .pic{font-size:20px;margin-bottom:6px}
     .ptag{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;margin-bottom:8px}
     .pt{font-weight:600;font-size:14px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);line-height:1.3}
-    .pr{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:12px}
-    .pk{color:var(--muted);font-family:var(--mono);font-size:11px;flex-shrink:0;min-width:72px;padding-top:1px}
+    .pr{display:flex;gap:8px;align-items:center;padding:3px 0;font-size:12px}
+    .pk{color:var(--muted);font-family:var(--mono);font-size:11px;flex-shrink:0;min-width:100px}
     .pv{line-height:1.4}
 
     /* COORDS */
@@ -492,7 +492,6 @@ function showZinPopup(lngLat,p){
   const supHa = p.sup_m2 ? (p.sup_m2/10000).toFixed(2)+' ha' : '—';
   popup.setLngLat(lngLat).setHTML(`
     <div class="pi">
-      <div class="pic">🌿</div>
       <div class="ptag" style="background:${color}22;color:${color}">${p.tipus||'—'}</div>
       <div class="pt">${p.codi||'Sense codi'}</div>
       <div class="pr"><span class="pk">subtipus</span><span class="pv">${p.tipus_sub||'—'}</span></div>
@@ -503,19 +502,22 @@ function showZinPopup(lngLat,p){
 
 function showArbrePopup(lngLat,p){
   const addr=(p.addresse_3||'')+(p.addresse_4?' '+p.addresse_4:'');
-  popup.setLngLat(lngLat).setHTML(`<div class="pi"><div class="pic">🌳</div><div class="pt">${p.name||'Arbre sense nom'}</div><div class="pr"><span class="pk">adreça</span><span class="pv">${addr||'—'}</span></div><div class="pr"><span class="pk">barri</span><span class="pv">${p.barri||'—'}</span></div><div class="pr"><span class="pk">districte</span><span class="pv">${p.districte||'—'}</span></div></div>`).addTo(map);
+  popup.setLngLat(lngLat).setHTML(`<div class="pi">
+<div class="pt">${p.name||'Arbre sense nom'}</div><div class="pr"><span class="pk">adreça</span><span class="pv">${addr||'—'}</span></div><div class="pr"><span class="pk">barri</span><span class="pv">${p.barri||'—'}</span></div><div class="pr"><span class="pk">districte</span><span class="pv">${p.districte||'—'}</span></div></div>`).addTo(map);
 }
 
 function showBioPopup(lngLat,p){
   const isBio=p.tipus==='BIO-TRONCS';
   const color=isBio?'#7a4a1e':'#c8401a';
-  popup.setLngLat(lngLat).setHTML(`<div class="pi"><div class="pic">${isBio?'🪵':'🌲'}</div><div class="ptag" style="background:${color}22;color:${color}">${p.tipus||'—'}</div><div class="pt">${p.nom_espai||p.localitzacio||'Sense nom'}</div><div class="pr"><span class="pk">localització</span><span class="pv">${p.localitzacio||'—'}</span></div><div class="pr"><span class="pk">barri</span><span class="pv">${p.barri||'—'}</span></div><div class="pr"><span class="pk">districte</span><span class="pv">${p.districte||'—'}</span></div></div>`).addTo(map);
+  popup.setLngLat(lngLat).setHTML(`<div class="pi">
+<div class="ptag" style="background:${color}22;color:${color}">${p.tipus||'—'}</div><div class="pt">${p.nom_espai||p.localitzacio||'Sense nom'}</div><div class="pr"><span class="pk">localització</span><span class="pv">${p.localitzacio||'—'}</span></div><div class="pr"><span class="pk">barri</span><span class="pv">${p.barri||'—'}</span></div><div class="pr"><span class="pk">districte</span><span class="pv">${p.districte||'—'}</span></div></div>`).addTo(map);
 }
 
 function showPicotPopup(lngLat,p){
   const colors={'Picot garser gros':'#e8a000','Picot garser petit':'#c0392b','Picot verd ibèric':'#27ae60'};
   const color=colors[p.nom_cat]||'#555';
-  popup.setLngLat(lngLat).setHTML(`<div class="pi"><div class="pic">🐦</div><div class="ptag" style="background:${color}22;color:${color}">${p.nom_cat||'—'}</div><div class="pt" style="font-style:italic;font-size:12px">${p.nom_sci||'—'}</div><div class="pr"><span class="pk">localitat</span><span class="pv">${p.localitat||'—'}</span></div><div class="pr"><span class="pk">data</span><span class="pv">${p.data||'—'}</span></div><div class="pr"><span class="pk">nombre</span><span class="pv">${p.nombre||'—'}</span></div></div>`).addTo(map);
+  popup.setLngLat(lngLat).setHTML(`<div class="pi">
+<div class="ptag" style="background:${color}22;color:${color}">${p.nom_cat||'—'}</div><div class="pt" style="font-style:italic;font-size:12px">${p.nom_sci||'—'}</div><div class="pr"><span class="pk">localitat</span><span class="pv">${p.localitat||'—'}</span></div><div class="pr"><span class="pk">data</span><span class="pv">${p.data||'—'}</span></div><div class="pr"><span class="pk">nombre</span><span class="pv">${p.nombre||'—'}</span></div></div>`).addTo(map);
 }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
@@ -577,7 +579,6 @@ function initEvents(){
         const batRow = (batActive && batVal !== null) ? `<div class="pr"><span class="pk">biomassa (t/ha)</span><span class="pv" style="font-family:var(--mono)">${batVal.toLocaleString('ca')}</span></div>` : '';
         popup.setLngLat(e.lngLat).setHTML(`
           <div class="pi">
-            <div class="pic">🏙️</div>
             <div class="pt">${p.nom}</div>
             <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
             <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
@@ -587,18 +588,21 @@ function initEvents(){
         // Només districte
         popup.setLngLat(e.lngLat).setHTML(`
           <div class="pi">
-            <div class="pic">🏙️</div>
             <div class="pt">${p.nom}</div>
             <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
             <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
           </div>`).addTo(map);
       }
-    } else if (rasterVal !== null) {
+    } else if (rasterVal !== null || ciclismeVal !== null || batVal !== null) {
+      const rasterActive   = map.getLayer('raster-layer') && map.getLayoutProperty('raster-layer','visibility') !== 'none';
+      const ciclismeActive = map.getLayer('raster-ciclisme-layer') && map.getLayoutProperty('raster-ciclisme-layer','visibility') !== 'none';
+      const batActive      = map.getLayer('raster-bat-layer') && map.getLayoutProperty('raster-bat-layer','visibility') !== 'none';
+      const rasterRow   = (rasterActive && rasterVal !== null)     ? `<div class="pr"><span class="pk">corredors</span><span class="pv" style="font-family:var(--mono)">${rasterVal.toLocaleString('ca')}</span></div>` : '';
+      const ciclismeRow = (ciclismeActive && ciclismeVal !== null) ? `<div class="pr"><span class="pk">ciclistes</span><span class="pv" style="font-family:var(--mono)">${ciclismeVal.toLocaleString('ca')}</span></div>` : '';
+      const batRow      = (batActive && batVal !== null)           ? `<div class="pr"><span class="pk">biomassa (t/ha)</span><span class="pv" style="font-family:var(--mono)">${batVal.toLocaleString('ca')}</span></div>` : '';
       popup.setLngLat(e.lngLat).setHTML(`
         <div class="pi">
-          <div class="pic">🗺️</div>
-          <div class="pt">Mitjana de corredors</div>
-          <div class="pr"><span class="pk">valor</span><span class="pv" style="font-family:var(--mono)">${rasterVal.toLocaleString('ca')}</span></div>
+          ${rasterRow}${ciclismeRow}${batRow}
         </div>`).addTo(map);
     }
   });
@@ -780,11 +784,11 @@ const METADATA = {
     dateStamp:               ''
   },
   picots: {
-    fileIdentifier:          '',
+    fileIdentifier:          'barcelona_picots_20-26',
     title:                   'Observacions de picots a Barcelona (2020-2026)',
-    date:                    '',
+    date:                    '2026-05-15',
     dateType:                'publicació',
-    abstract:                '',
+    abstract:                'Presència de picots a la ciutat, indicador de presència d\'arbres morts o amb cavitats.',
     language:                'cat',
     topicCategory:           'biota',
     spatialRepresentationType: 'vector',
@@ -792,7 +796,7 @@ const METADATA = {
     geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
     distributionFormat:      'GeoJSON',
     pointOfContact:          '',
-    organisation:            '',
+    organisation:            'Ajuntament de Barcelona',
     role:                    'propietari',
     accessConstraints:       '',
     useConstraints:          '',
@@ -820,11 +824,11 @@ const METADATA = {
     dateStamp:               ''
   },
   raster_bat: {
-    fileIdentifier:          '',
+    fileIdentifier:          'variables-biofisiques-arbrat-v1r1-bat-2016-2017',
     title:                   'Biomassa aèria total Barcelona (2016-2017)',
     date:                    '2017',
     dateType:                'publicació',
-    abstract:                '',
+    abstract:                'Malla (grid) on cada cel·la té associat el valor corresponent de biomassa (pes sec) de tota la part aèria de tots els arbres vius de diàmetre normal ≥ 7,5 cm, mesurada en t/ha. Aquesta biomassa inclou el tronc, les branques i les fulles.',
     language:                'cat',
     topicCategory:           'biota',
     spatialRepresentationType: 'raster',
@@ -832,10 +836,10 @@ const METADATA = {
     geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.317 N: 41.468',
     distributionFormat:      'GeoTIFF',
     pointOfContact:          '',
-    organisation:            '',
+    organisation:            'ICGC',
     role:                    'propietari',
     accessConstraints:       '',
-    useConstraints:          '',
+    useConstraints:          'Sense limitacions',
     metadataContact:         '',
     dateStamp:               ''
   },
@@ -992,6 +996,47 @@ const TABLE_CONFIG = {
 
 let currentTable = null;
 
+// ── ATTRIBUTE TABLE ───────────────────────────────────────────────────────────
+let sortState = { col: null, asc: true };
+
+function renderTable(id, feats, cfg) {
+  const thead = document.getElementById('attr-thead');
+  const tbody = document.getElementById('attr-tbody');
+
+  thead.innerHTML = '<tr>' + cfg.cols.map(c => `
+    <th onclick="sortTable('${id}','${c}')" style="cursor:pointer;user-select:none">
+      ${c} <span id="sort-arrow-${c}" style="font-size:9px;color:var(--muted)">${sortState.col===c ? (sortState.asc?'▲':'▼') : '⇅'}</span>
+    </th>`).join('') + '</tr>';
+
+  tbody.innerHTML = feats.map((f,i) => {
+    const p = f.properties;
+    const cells = cfg.cols.map(c=>'<td title="'+(p[c]||'')+'">'+(p[c]||'—')+'</td>').join('');
+    return '<tr onclick="zoomToFeature(\''+id+'\','+i+')">'+cells+'</tr>';
+  }).join('');
+}
+
+function sortTable(id, col) {
+  const feats = DATA[id] || [];
+  const cfg   = TABLE_CONFIG[id];
+
+  if (sortState.col === col) {
+    sortState.asc = !sortState.asc;
+  } else {
+    sortState.col = col;
+    sortState.asc = true;
+  }
+
+  const sorted = [...feats].sort((a, b) => {
+    const va = a.properties[col] ?? '';
+    const vb = b.properties[col] ?? '';
+    const na = parseFloat(va), nb = parseFloat(vb);
+    const cmp = (!isNaN(na) && !isNaN(nb)) ? na - nb : String(va).localeCompare(String(vb), 'ca');
+    return sortState.asc ? cmp : -cmp;
+  });
+
+  renderTable(id, sorted, cfg);
+}
+
 function openTable(id) {
   const panel = document.getElementById('attr-panel');
   if (currentTable === id && panel.classList.contains('open')) {
@@ -999,21 +1044,12 @@ function openTable(id) {
     return;
   }
   currentTable = id;
+  sortState = { col: null, asc: true };
   panel.style.display = 'flex';
   const cfg   = TABLE_CONFIG[id];
   const feats = DATA[id] || [];
   document.getElementById('attr-title').textContent = cfg.title + ' (' + feats.length + ')';
-
-  const thead = document.getElementById('attr-thead');
-  const tbody = document.getElementById('attr-tbody');
-
-  thead.innerHTML = '<tr>' + cfg.cols.map(c=>'<th>'+c+'</th>').join('') + '</tr>';
-  tbody.innerHTML = feats.map((f,i) => {
-    const p = f.properties;
-    const cells = cfg.cols.map(c=>'<td title="'+(p[c]||'')+'">'+(p[c]||'—')+'</td>').join('');
-    return '<tr onclick="zoomToFeature(\''+id+'\','+i+')">'+cells+'</tr>';
-  }).join('');
-
+  renderTable(id, feats, cfg);
   document.getElementById('attr-panel').classList.add('open');
 }
 
