@@ -103,6 +103,25 @@
     #creaf-logo{position:absolute;bottom:16px;right:56px;z-index:10;}
     #creaf-logo img{height:32px;opacity:.85;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15));transition:opacity .2s}
     #creaf-logo img:hover{opacity:1}
+
+    /* METADATA */
+    .meta-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0 2px;line-height:1;transition:color .15s;flex-shrink:0}
+    .meta-btn:hover{color:var(--accent)}
+    #meta-overlay{position:absolute;inset:0;z-index:200;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center}
+    #meta-overlay.open{display:flex}
+    #meta-modal{background:var(--surface);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,.2);width:480px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+    #meta-modal-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);flex-shrink:0}
+    #meta-modal-title{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    #meta-modal-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);padding:0 4px}
+    #meta-modal-close:hover{color:var(--text)}
+    #meta-modal-body{overflow-y:auto;padding:16px}
+    .meta-section{margin-bottom:16px}
+    .meta-section-title{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+    .meta-field{display:grid;grid-template-columns:160px 1fr;gap:6px;align-items:start;padding:4px 0;border-bottom:1px solid #f0ede8;font-size:12px}
+    .meta-field:last-child{border-bottom:none}
+    .meta-label{color:var(--muted);font-family:var(--mono);font-size:10px;padding-top:2px}
+    .meta-value{color:var(--text);line-height:1.4}
+    .meta-empty{color:#ccc;font-style:italic}
   </style>
 </head>
 <body>
@@ -127,27 +146,45 @@
     <div class="cb">
       <div class="li">
         <div class="ll"><div class="sw" style="background:var(--green);border-radius:50%"></div>Arbres d'interès local</div>
-        <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('arbres',this.checked)"><span class="tt"></span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="meta-btn" onclick="openMeta('arbres')" title="Metadades ISO 19115">ⓘ</button>
+          <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('arbres',this.checked)"><span class="tt"></span></label>
+        </div>
       </div>
       <div class="li">
         <div class="ll"><div class="sw" style="background:var(--brown);border-radius:50%"></div>Bio-troncs</div>
-        <label class="toggle"><input type="checkbox" onchange="toggleLayer('biotroncs',this.checked)"><span class="tt"></span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="meta-btn" onclick="openMeta('biotroncs')" title="Metadades ISO 19115">ⓘ</button>
+          <label class="toggle"><input type="checkbox" onchange="toggleLayer('biotroncs',this.checked)"><span class="tt"></span></label>
+        </div>
       </div>
       <div class="li">
         <div class="ll"><div class="sw" style="background:var(--amber);border-radius:50%"></div>Cúmuls de troncs</div>
-        <label class="toggle"><input type="checkbox" onchange="toggleLayer('cumuls',this.checked)"><span class="tt"></span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="meta-btn" onclick="openMeta('cumuls')" title="Metadades ISO 19115">ⓘ</button>
+          <label class="toggle"><input type="checkbox" onchange="toggleLayer('cumuls',this.checked)"><span class="tt"></span></label>
+        </div>
       </div>
       <div class="li">
         <div class="ll"><div class="sw" style="background:#e8a000;border-radius:50%"></div>Picots</div>
-        <label class="toggle"><input type="checkbox" onchange="toggleLayer('picots',this.checked)"><span class="tt"></span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="meta-btn" onclick="openMeta('picots')" title="Metadades ISO 19115">ⓘ</button>
+          <label class="toggle"><input type="checkbox" onchange="toggleLayer('picots',this.checked)"><span class="tt"></span></label>
+        </div>
       </div>
       <div class="li">
         <div class="ll"><div class="sw" style="background:#7bc77c;border-radius:2px;border:1px solid #555"></div>Zones Interès Natural</div>
-        <label class="toggle"><input type="checkbox" onchange="toggleLayer('zin',this.checked)"><span class="tt"></span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="meta-btn" onclick="openMeta('zin')" title="Metadades ISO 19115">ⓘ</button>
+          <label class="toggle"><input type="checkbox" onchange="toggleLayer('zin',this.checked)"><span class="tt"></span></label>
+        </div>
       </div>
       <div class="li">
         <div class="ll"><div class="sw" style="background:#1a4a6b;border-radius:2px;opacity:.7"></div>Districtes</div>
-        <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('districtes',this.checked)"><span class="tt"></span></label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="meta-btn" onclick="openMeta('districtes')" title="Metadades ISO 19115">ⓘ</button>
+          <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('districtes',this.checked)"><span class="tt"></span></label>
+        </div>
       </div>
     </div>
   </div>
@@ -210,6 +247,17 @@
   </div>
   <div id="attr-scroll">
     <table id="attr-table"><thead id="attr-thead"></thead><tbody id="attr-tbody"></tbody></table>
+  </div>
+</div>
+
+
+<div id="meta-overlay" onclick="if(event.target===this)closeMeta()">
+  <div id="meta-modal">
+    <div id="meta-modal-header">
+      <span id="meta-modal-title">Metadades ISO 19115</span>
+      <button id="meta-modal-close" onclick="closeMeta()">✕</button>
+    </div>
+    <div id="meta-modal-body"></div>
   </div>
 </div>
 
@@ -494,6 +542,187 @@ function initSearch(arbreFeats, bioFeats, picotFeats){
 map.on('mousemove',e=>{
   document.getElementById('coords').textContent=`Lat: ${e.lngLat.lat.toFixed(5)} | Lon: ${e.lngLat.lng.toFixed(5)}`;
 });
+
+
+// ── METADADES ISO 19115 ───────────────────────────────────────────────────────
+const METADATA = {
+  arbres: {
+    fileIdentifier:          'arbres_interes_local_BCN',
+    title:                   'Arbres d\'interès local de Barcelona',
+    date:                    '2026-05-15',
+    dateType:                'publicació',
+    abstract: 'El Catàleg d\'arbres d\'interès local conté els exemplars d\'arbres, palmeres i arbustos més valuosos que hi ha als carrers i als jardins particulars de Barcelona. La inclusió en aquest catàleg n\'assegura la conservació i les condicions de desenvolupament i en cap cas es poden eliminar els exemplars. El procediment de catalogació es recull a l\'Ordenança del medi ambient de l\'Ajuntament de Barcelona, aprovada l\'any 2011. L\'elecció dels exemplars és a càrrec de la Comissió de Catalogació a petició de tècnics de Parcs i Jardins, ciutadania o entitats. La Comissió trasllada la proposta al Consell d\'Administració de Parcs i Jardins i, un cop aquest l\'aprova, cal que l\'aprovi definitivament el Consell Plenari de l\'Ajuntament de Barcelona. Els elements que es tenen en compte a l\'hora d\'incloure un arbre dins aquest catàleg són, principalment, la seva raresa, les qualitats estètiques, el valor històric, l\'edat i la mida.',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
+    distributionFormat:      'Shapefile',
+    pointOfContact:          'creator',
+    organisation:            'Ajuntament de Barcelona',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         'Ajuntament de Barcelona',
+    dateStamp:               ''
+  },
+  biotroncs: {
+    fileIdentifier:          '',
+    title:                   'Bio-troncs de Barcelona',
+    date:                    '',
+    dateType:                'publicació',
+    abstract:                '',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   '',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  cumuls: {
+    fileIdentifier:          '',
+    title:                   'Cúmuls de troncs de Barcelona',
+    date:                    '',
+    dateType:                'publicació',
+    abstract:                '',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   '',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  picots: {
+    fileIdentifier:          '',
+    title:                   'Observacions de picots a Barcelona (2020-2026)',
+    date:                    '',
+    dateType:                'publicació',
+    abstract:                '',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  zin: {
+    fileIdentifier:          '',
+    title:                   'Zones d\'Interès Natural (ZIN/ZINA) de Barcelona',
+    date:                    '',
+    dateType:                'publicació',
+    abstract:                '',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  districtes: {
+    fileIdentifier:          '',
+    title:                   'Districtes de Barcelona',
+    date:                    '',
+    dateType:                'publicació',
+    abstract:                '',
+    language:                'cat',
+    topicCategory:           'l\u00edmits Administratius',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  }
+};
+
+const META_LABELS = {
+  fileIdentifier:            'Identificador',
+  title:                     'Títol',
+  date:                      'Data',
+  dateType:                  'Tipus de data',
+  abstract:                  'Resum',
+  language:                  'Idioma',
+  topicCategory:             'Categoria temàtica',
+  spatialRepresentationType: 'Tipus representació espacial',
+  referenceSystemInfo:       'Sistema de referència',
+  geographicBoundingBox:     'Extensió geogràfica',
+  distributionFormat:        'Format de distribució',
+  pointOfContact:            'Responsable',
+  organisation:              'Organització',
+  role:                      'Rol',
+  accessConstraints:         'Restriccions d\'accés',
+  useConstraints:            'Restriccions d\'ús',
+  metadataContact:           'Responsable metadades',
+  dateStamp:                 'Data metadades'
+};
+
+const META_SECTIONS = {
+  'Identificació': ['fileIdentifier','title','date','dateType','abstract','language','topicCategory'],
+  'Representació espacial': ['spatialRepresentationType','referenceSystemInfo','geographicBoundingBox'],
+  'Distribució': ['distributionFormat'],
+  'Responsabilitat': ['pointOfContact','organisation','role'],
+  'Restriccions': ['accessConstraints','useConstraints'],
+  'Metadades': ['metadataContact','dateStamp']
+};
+
+function openMeta(id) {
+  const m = METADATA[id];
+  if (!m) return;
+  document.getElementById('meta-modal-title').textContent = m.title || 'Metadades ISO 19115';
+  let html = '';
+  for (const [section, fields] of Object.entries(META_SECTIONS)) {
+    html += `<div class="meta-section"><div class="meta-section-title">${section}</div>`;
+    for (const field of fields) {
+      const val = m[field];
+      const display = val
+        ? `<span class="meta-value">${val}</span>`
+        : `<span class="meta-value meta-empty">—</span>`;
+      html += `<div class="meta-field"><span class="meta-label">${META_LABELS[field]||field}</span>${display}</div>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('meta-modal-body').innerHTML = html;
+  document.getElementById('meta-overlay').classList.add('open');
+}
+
+function closeMeta() {
+  document.getElementById('meta-overlay').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeMeta(); });
 
 // ── BASEMAP ───────────────────────────────────────────────────────────────────
 function setBM(id,btn){
