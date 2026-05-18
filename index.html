@@ -213,7 +213,7 @@
       </div>
       <div class="group-body collapsed" id="grp-body-altres" style="max-height:0">
         <div class="li">
-          <div class="ll">Hàbitats forestals v3 2022</div>
+          <div class="ll">Hàbitats forestals</div>
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('habitats')" title="Metadades ISO 19115">ⓘ</button>
             <label class="toggle"><input type="checkbox" onchange="toggleLayer('habitats',this.checked)"><span class="tt"></span></label>
@@ -258,7 +258,7 @@
       <div class="leg" id="leg-hab-1"><div class="ld" style="background:#005a32;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Boscos aciculifolis</div>
       <div class="leg" id="leg-hab-2"><div class="ld" style="background:#41ab5d;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Boscos esclerofil·les i laurifolis</div>
       <div class="leg" id="leg-hab-3"><div class="ld" style="background:#a1d99b;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Boscos caducifolis, planifolis</div>
-      <div class="leg" id="leg-hab-4"><div class="ld" style="background:#c7e9c0;opacity:.8;border:1px solid #a1d99b;border-radius:2px;width:16px;height:10px"></div>Boscos de ribera</div>
+      <div class="leg" id="leg-hab-4"><div class="ld" style="background:#39ff14;opacity:.8;border-radius:2px;width:16px;height:10px"></div>Boscos de ribera</div>
       <div class="leg" id="leg-raster_bat"><div class="ld" style="background:linear-gradient(to right,#b2182b,#f4a582,#d9f0d3,#5aae61,#006837);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Biomassa aèria total</div>
       <div class="leg" id="leg-zin-1"><div class="ld" style="background:#7bc77c;opacity:.8;border-radius:2px;width:16px;height:10px;border:1px solid #232323"></div>ZIN Llenyós</div>
       <div class="leg" id="leg-zin-2"><div class="ld" style="background:#f7fcf5;border-radius:2px;width:16px;height:10px;border:2px solid #0000ff"></div>ZIN Herbaci</div>
@@ -280,6 +280,9 @@
       </div>
       <div class="stats-row" style="margin-top:8px">
         <div class="stat-box" id="sb-zin" onclick="openTable('zin')"><div class="stat-num" style="color:#7bc77c" id="cnt-zin">—</div><div class="stat-lbl">Zones Interès Natural</div></div>
+      </div>
+      <div class="stats-row" style="margin-top:8px">
+        <div class="stat-box" id="sb-habitats" onclick="openTable('habitats')"><div class="stat-num" style="color:#41ab5d" id="cnt-habitats">—</div><div class="stat-lbl">Hàbitats forestals</div></div>
       </div>
     </div>
   </div>
@@ -394,6 +397,7 @@ map.on('load', async () => {
     document.getElementById('cnt-bio').textContent     = biotroncs.features.length;
     document.getElementById('cnt-picots').textContent  = picots.features.length;
     document.getElementById('cnt-zin').textContent     = zin.features.length;
+    document.getElementById('cnt-habitats').textContent = habitats.features.length;
 
     // Centra als arbres
     const lngs=arbres.features.map(f=>f.geometry.coordinates[0]);
@@ -474,7 +478,7 @@ map.on('load', async () => {
       paint:{'fill-color':'#a1d99b','fill-opacity':0.45,'fill-outline-color':'#74c476'}});
     map.addLayer({id:'hab-ribera',type:'fill',source:'hab-src',
       filter:['==',['get','tipus'],'Boscos i bosquines de ribera o de llocs molt humits'],
-      paint:{'fill-color':'#c7e9c0','fill-opacity':0.45,'fill-outline-color':'#a1d99b'}});
+      paint:{'fill-color':'#39ff14','fill-opacity':0.45,'fill-outline-color':'#00cc00'}});
     // ── PICOTS ──
     map.addSource('picots-src',{type:'geojson',data:picots});
     map.addLayer({id:'picots-garser-gros',type:'circle',source:'picots-src',filter:['==',['get','nom_cat'],'Picot garser gros'],paint:{'circle-radius':5,'circle-color':'#e8a000','circle-stroke-width':1.5,'circle-stroke-color':'#fff','circle-opacity':0.85}});
@@ -515,7 +519,7 @@ map.on('load', async () => {
 const popup = new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:14});
 
 function showHabPopup(lngLat,p){
-  const colors={'Boscos aciculifolis':'#005a32','Boscos esclerofil·les i laurifolis':'#41ab5d','Boscos caducifolis, planifolis':'#a1d99b','Boscos i bosquines de ribera o de llocs molt humits':'#c7e9c0'};
+  const colors={'Boscos aciculifolis':'#005a32','Boscos esclerofil·les i laurifolis':'#41ab5d','Boscos caducifolis, planifolis':'#a1d99b','Boscos i bosquines de ribera o de llocs molt humits':'#39ff14'};
   const color=colors[p.tipus]||'#4dac26';
   const areaHa = p.area_m2 ? (p.area_m2/10000).toFixed(2)+' ha' : '—';
   popup.setLngLat(lngLat).setHTML(`
@@ -710,6 +714,9 @@ function toggleLayer(id,v){
   if(id==='zin'){
     document.getElementById('sb-zin').classList.toggle('off',!v);
   }
+  if(id==='habitats'){
+    document.getElementById('sb-habitats').classList.toggle('off',!v);
+  }
   if(id==='biotroncs'||id==='cumuls'){
     const hide = !layerState.biotroncs && !layerState.cumuls;
     document.getElementById('sb-bio').classList.toggle('off', hide);
@@ -872,7 +879,7 @@ const METADATA = {
   },
   habitats: {
     fileIdentifier:          '',
-    title:                   'Hàbitats forestals v3 2022',
+    title:                   'Hàbitats forestals',
     date:                    '2022',
     dateType:                'publicació',
     abstract:                '',
@@ -1059,7 +1066,7 @@ const TABLE_CONFIG = {
   bio:    { title:"🪵 Bio-troncs i cúmuls",    cols:['nom_espai','tipus','localitzacio','barri','districte'] },
   picots: { title:"🐦 Observacions de picots", cols:['nom_cat','nom_sci','data','localitat','nombre'] },
   zin:    { title:"🌿 Zones d'Interès Natural",  cols:['tipus','codi','tipus_sub','sup_m2','data_alta'] },
-  habitats: { title:"🌲 Hàbitats forestals v3 2022", cols:['tipus','subtipus','cod_eunis','area_m2','amenaca','hic'] }
+  habitats: { title:"🌲 Hàbitats forestals", cols:['tipus','subtipus','cod_eunis','area_m2','amenaca','hic'] }
 };
 
 let currentTable = null;
