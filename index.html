@@ -151,35 +151,35 @@
     <div class="ch">Capes</div>
     <div class="cb">
       <div class="li">
-        <div class="ll"><div class="sw" style="background:var(--green);border-radius:50%"></div>Arbres d'interès local</div>
+        <div class="ll">Arbres d'interès local</div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="meta-btn" onclick="openMeta('arbres')" title="Metadades ISO 19115">ⓘ</button>
           <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('arbres',this.checked)"><span class="tt"></span></label>
         </div>
       </div>
       <div class="li">
-        <div class="ll"><div class="sw" style="background:var(--brown);border-radius:50%"></div>Bio-troncs</div>
+        <div class="ll">Bio-troncs</div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="meta-btn" onclick="openMeta('biotroncs')" title="Metadades ISO 19115">ⓘ</button>
           <label class="toggle"><input type="checkbox" onchange="toggleLayer('biotroncs',this.checked)"><span class="tt"></span></label>
         </div>
       </div>
       <div class="li">
-        <div class="ll"><div class="sw" style="background:var(--amber);border-radius:50%"></div>Cúmuls de troncs</div>
+        <div class="ll">Cúmuls de troncs</div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="meta-btn" onclick="openMeta('cumuls')" title="Metadades ISO 19115">ⓘ</button>
           <label class="toggle"><input type="checkbox" onchange="toggleLayer('cumuls',this.checked)"><span class="tt"></span></label>
         </div>
       </div>
       <div class="li">
-        <div class="ll"><div class="sw" style="background:#e8a000;border-radius:50%"></div>Picots</div>
+        <div class="ll">Picots</div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="meta-btn" onclick="openMeta('picots')" title="Metadades ISO 19115">ⓘ</button>
           <label class="toggle"><input type="checkbox" onchange="toggleLayer('picots',this.checked)"><span class="tt"></span></label>
         </div>
       </div>
       <div class="li">
-        <div class="ll"><div class="sw" style="background:#7bc77c;border-radius:2px;border:1px solid #555"></div>Zones Interès Natural</div>
+        <div class="ll">Zones Interès Natural</div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="meta-btn" onclick="openMeta('zin')" title="Metadades ISO 19115">ⓘ</button>
           <label class="toggle"><input type="checkbox" onchange="toggleLayer('zin',this.checked)"><span class="tt"></span></label>
@@ -192,17 +192,31 @@
       </div>
       <div class="group-body collapsed" id="grp-body-freq" style="max-height:0;border-bottom:1px solid var(--border);margin-bottom:4px;padding-bottom:2px">
         <div class="li">
-          <div class="ll"><div class="sw" style="background:linear-gradient(135deg,#440154,#31688e,#35b779,#fde725);border-radius:2px"></div>Corredors</div>
+          <div class="ll">Corredors</div>
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('raster')" title="Metadades ISO 19115">ⓘ</button>
             <label class="toggle"><input type="checkbox" onchange="toggleLayer('raster',this.checked)"><span class="tt"></span></label>
           </div>
         </div>
         <div class="li">
-          <div class="ll"><div class="sw" style="background:linear-gradient(135deg,#440154,#31688e,#35b779,#fde725);border-radius:2px"></div>Ciclistes</div>
+          <div class="ll">Ciclistes</div>
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('raster_ciclisme')" title="Metadades ISO 19115">ⓘ</button>
             <label class="toggle"><input type="checkbox" onchange="toggleLayer('raster_ciclisme',this.checked)"><span class="tt"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRUP ALTRES DADES D'INTERÈS -->
+      <div class="group-header collapsed" id="grp-header-altres" onclick="toggleGroup('altres')">
+        <span>Altres dades d'interès</span><span class="arrow" style="transform:rotate(-90deg)">▾</span>
+      </div>
+      <div class="group-body collapsed" id="grp-body-altres" style="max-height:0">
+        <div class="li">
+          <div class="ll">Biomassa aèria total</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="meta-btn" onclick="openMeta('raster_bat')" title="Metadades ISO 19115">ⓘ</button>
+            <label class="toggle"><input type="checkbox" onchange="toggleLayer('raster_bat',this.checked)"><span class="tt"></span></label>
           </div>
         </div>
       </div>
@@ -213,7 +227,7 @@
       </div>
       <div class="group-body collapsed" id="grp-body-limits" style="max-height:0">
         <div class="li">
-          <div class="ll"><div class="sw" style="background:#1a4a6b;border-radius:2px;opacity:.7"></div>Districtes</div>
+          <div class="ll">Districtes</div>
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('districtes')" title="Metadades ISO 19115">ⓘ</button>
             <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('districtes',this.checked)"><span class="tt"></span></label>
@@ -234,6 +248,7 @@
       <div class="leg" id="leg-picots-3"><div class="ld" style="background:#27ae60"></div>Picot verd ibèric</div>
       <div class="leg" id="leg-raster_ciclisme"><div class="ld" style="background:linear-gradient(to right,#440154,#31688e,#35b779,#fde725);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Ciclistes</div>
       <div class="leg" id="leg-raster"><div class="ld" style="background:linear-gradient(to right,#440154,#31688e,#35b779,#fde725);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Corredors</div>
+      <div class="leg" id="leg-raster_bat"><div class="ld" style="background:linear-gradient(to right,#b2182b,#f4a582,#d9f0d3,#5aae61,#006837);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Biomassa aèria total</div>
       <div class="leg" id="leg-zin-1"><div class="ld" style="background:#7bc77c;opacity:.8;border-radius:2px;width:16px;height:10px;border:1px solid #232323"></div>ZIN Llenyós</div>
       <div class="leg" id="leg-zin-2"><div class="ld" style="background:#f7fcf5;border-radius:2px;width:16px;height:10px;border:2px solid #0000ff"></div>ZIN Herbaci</div>
       <div class="leg" id="leg-zin-3"><div class="ld" style="background:#00441b;opacity:.5;border-radius:2px;width:16px;height:10px;border:1px solid #232323"></div>ZINA</div>
@@ -345,12 +360,13 @@ const DATA = {};
 map.on('load', async () => {
   try {
     setMsg('Carregant districtes…');
-    const [arbres, biotroncs, districtes, picots, zin] = await Promise.all([
+    const [arbres, biotroncs, districtes, picots, zin, batData] = await Promise.all([
       fetch('dades/arbres_interes_local.geojson').then(r=>{ if(!r.ok) throw new Error('arbres_interes_local.geojson'); return r.json(); }),
       fetch('dades/biotroncs.geojson').then(r=>{ if(!r.ok) throw new Error('biotroncs.geojson'); return r.json(); }),
       fetch('dades/districtes_unitats.geojson').then(r=>{ if(!r.ok) throw new Error('districtes_unitats.geojson'); return r.json(); }),
       fetch('dades/barcelona_picots_20-26.geojson').then(r=>{ if(!r.ok) throw new Error('barcelona_picots_20-26.geojson'); return r.json(); }),
       fetch('dades/zin_zina.geojson').then(r=>{ if(!r.ok) throw new Error('zin_zina.geojson'); return r.json(); }),
+      fetch('dades/raster_bat.json').then(r=>{ if(!r.ok) throw new Error('raster_bat.json'); return r.json(); }),
     ]);
 
     // Guarda per la taula
@@ -358,6 +374,7 @@ map.on('load', async () => {
     DATA.bio      = biotroncs.features;
     DATA.picots   = picots.features;
     DATA.zin      = zin.features;
+    window.RASTER_BAT = batData;
 
     // Recomptes
     document.getElementById('cnt-arbres').textContent  = arbres.features.length;
@@ -373,6 +390,20 @@ map.on('load', async () => {
 
 
 
+
+    // ── RASTER BAT ──
+    map.addSource('raster-bat-src', {
+      type: 'image',
+      url: 'dades/raster_bat.png',
+      coordinates: [
+        [2.0523329052318346, 41.468297591446614],
+        [2.2280449959042774, 41.468297591446614],
+        [2.2280449959042774, 41.317038523340415],
+        [2.0523329052318346, 41.317038523340415]
+      ]
+    });
+    map.addLayer({id:'raster-bat-layer',type:'raster',source:'raster-bat-src',
+      paint:{'raster-opacity':0.95}});
     // ── RASTER CICLISME ──
     map.addSource('raster-ciclisme-src', {
       type: 'image',
@@ -488,6 +519,16 @@ function showPicotPopup(lngLat,p){
 }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
+function getRasterBatVal(lngLat) {
+  if (!window.RASTER_BAT) return null;
+  if (!map.getLayer('raster-bat-layer')) return null;
+  if (map.getLayoutProperty('raster-bat-layer','visibility') === 'none') return null;
+  const col = Math.floor((lngLat.lng - RASTER_BAT.origin_lon) / RASTER_BAT.dx);
+  const row = Math.floor((RASTER_BAT.origin_lat - lngLat.lat) / RASTER_BAT.dy);
+  if (col < 0 || col >= RASTER_BAT.width || row < 0 || row >= RASTER_BAT.height) return null;
+  return RASTER_BAT.data[row][col];
+}
+
 function getRasterCiclismeVal(lngLat) {
   if (!map.getLayer('raster-ciclisme-layer')) return null;
   if (map.getLayoutProperty('raster-ciclisme-layer','visibility') === 'none') return null;
@@ -516,6 +557,7 @@ function initEvents(){
     const dist     = map.queryRenderedFeatures(e.point,{layers:['dist-fill']});
     const rasterVal = getRasterVal(e.lngLat);
     const ciclismeVal = getRasterCiclismeVal(e.lngLat);
+    const batVal = getRasterBatVal(e.lngLat);
 
     if      (arbres.length)   showArbrePopup(e.lngLat, arbres[0].properties);
     else if (bio.length)      showBioPopup(e.lngLat, bio[0].properties);
@@ -528,16 +570,18 @@ function initEvents(){
       const rasterVal = rasterActive ? getRasterVal(e.lngLat) : null;
 
       const ciclismeActive = map.getLayer('raster-ciclisme-layer') && map.getLayoutProperty('raster-ciclisme-layer','visibility') !== 'none';
-      if ((rasterActive && rasterVal !== null) || (ciclismeActive && ciclismeVal !== null)) {
+      if ((rasterActive && rasterVal !== null) || (ciclismeActive && ciclismeVal !== null) || (map.getLayer('raster-bat-layer') && map.getLayoutProperty('raster-bat-layer','visibility') !== 'none' && batVal !== null)) {
         const rasterRow  = (rasterActive && rasterVal !== null)   ? `<div class="pr"><span class="pk">corredors</span><span class="pv" style="font-family:var(--mono)">${rasterVal.toLocaleString('ca')}</span></div>` : '';
         const ciclismeRow = (ciclismeActive && ciclismeVal !== null) ? `<div class="pr"><span class="pk">ciclistes</span><span class="pv" style="font-family:var(--mono)">${ciclismeVal.toLocaleString('ca')}</span></div>` : '';
+        const batActive = map.getLayer('raster-bat-layer') && map.getLayoutProperty('raster-bat-layer','visibility') !== 'none';
+        const batRow = (batActive && batVal !== null) ? `<div class="pr"><span class="pk">biomassa (t/ha)</span><span class="pv" style="font-family:var(--mono)">${batVal.toLocaleString('ca')}</span></div>` : '';
         popup.setLngLat(e.lngLat).setHTML(`
           <div class="pi">
             <div class="pic">🏙️</div>
             <div class="pt">${p.nom}</div>
             <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
             <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
-            ${rasterRow}${ciclismeRow}
+            ${rasterRow}${ciclismeRow}${batRow}
           </div>`).addTo(map);
       } else {
         // Només districte
@@ -579,7 +623,8 @@ const LAYERS={
   districtes:['dist-fill','dist-line'],
   zin:       ['zin-llenyos','zin-herbaci','zin-zina'],
   raster:    ['raster-layer'],
-  raster_ciclisme: ['raster-ciclisme-layer']
+  raster_ciclisme: ['raster-ciclisme-layer'],
+  raster_bat: ['raster-bat-layer']
 };
 const LEGEND={
   arbres:    ['leg-arbres'],
@@ -589,10 +634,11 @@ const LEGEND={
   districtes:['leg-districtes'],
   zin:       ['leg-zin-1','leg-zin-2','leg-zin-3'],
   raster:    ['leg-raster'],
-  raster_ciclisme: ['leg-raster_ciclisme']
+  raster_ciclisme: ['leg-raster_ciclisme'],
+  raster_bat:      ['leg-raster_bat']
 };
 
-const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false};
+const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false};
 
 function toggleLayer(id,v){
   layerState[id] = v;
@@ -765,6 +811,26 @@ const METADATA = {
     referenceSystemInfo:     'EPSG:4326 - WGS 84',
     geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
     distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  raster_bat: {
+    fileIdentifier:          '',
+    title:                   'Biomassa aèria total Barcelona (2016-2017)',
+    date:                    '2017',
+    dateType:                'publicació',
+    abstract:                '',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'raster',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.317 N: 41.468',
+    distributionFormat:      'GeoTIFF',
     pointOfContact:          '',
     organisation:            '',
     role:                    'propietari',
