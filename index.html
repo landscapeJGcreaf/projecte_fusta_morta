@@ -237,7 +237,7 @@
   <button class="bb" onclick="setBM('sat',this)">Sat</button>
 </div>
 
-<div id="attr-panel">
+<div id="attr-panel" style="display:none">
   <div id="attr-header">
     <span id="attr-title">Taula d'atributs</span>
     <div style="display:flex;gap:8px;align-items:center">
@@ -547,23 +547,23 @@ map.on('mousemove',e=>{
 // ── METADADES ISO 19115 ───────────────────────────────────────────────────────
 const METADATA = {
   arbres: {
-    fileIdentifier:          'arbres_interes_local_BCN',
+    fileIdentifier:          '',
     title:                   'Arbres d\'interès local de Barcelona',
-    date:                    '2026-05-15',
+    date:                    '',
     dateType:                'publicació',
-    abstract: 'El Catàleg d\'arbres d\'interès local conté els exemplars d\'arbres, palmeres i arbustos més valuosos que hi ha als carrers i als jardins particulars de Barcelona. La inclusió en aquest catàleg n\'assegura la conservació i les condicions de desenvolupament i en cap cas es poden eliminar els exemplars. El procediment de catalogació es recull a l\'Ordenança del medi ambient de l\'Ajuntament de Barcelona, aprovada l\'any 2011. L\'elecció dels exemplars és a càrrec de la Comissió de Catalogació a petició de tècnics de Parcs i Jardins, ciutadania o entitats. La Comissió trasllada la proposta al Consell d\'Administració de Parcs i Jardins i, un cop aquest l\'aprova, cal que l\'aprovi definitivament el Consell Plenari de l\'Ajuntament de Barcelona. Els elements que es tenen en compte a l\'hora d\'incloure un arbre dins aquest catàleg són, principalment, la seva raresa, les qualitats estètiques, el valor històric, l\'edat i la mida.',
+    abstract:                '',
     language:                'cat',
     topicCategory:           'biota',
     spatialRepresentationType: 'vector',
     referenceSystemInfo:     'EPSG:4326 - WGS 84',
     geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
-    distributionFormat:      'Shapefile',
-    pointOfContact:          'creator',
-    organisation:            'Ajuntament de Barcelona',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
     role:                    'propietari',
     accessConstraints:       '',
     useConstraints:          '',
-    metadataContact:         'Ajuntament de Barcelona',
+    metadataContact:         '',
     dateStamp:               ''
   },
   biotroncs: {
@@ -752,6 +752,7 @@ function openTable(id) {
     return;
   }
   currentTable = id;
+  panel.style.display = 'flex';
   const cfg   = TABLE_CONFIG[id];
   const feats = DATA[id] || [];
   document.getElementById('attr-title').textContent = cfg.title + ' (' + feats.length + ')';
@@ -781,7 +782,9 @@ function clearSelection() {
 }
 
 function closeTable() {
-  document.getElementById('attr-panel').classList.remove('open');
+  const panel = document.getElementById('attr-panel');
+  panel.classList.remove('open');
+  setTimeout(() => { panel.style.display = 'none'; }, 300);
   currentTable = null;
 }
 
