@@ -524,8 +524,8 @@ function showHabPopup(lngLat,p){
   const areaHa = p.area_m2 ? (p.area_m2/10000).toFixed(2)+' ha' : '—';
   popup.setLngLat(lngLat).setHTML(`
     <div class="pi">
-      <div class="ptag" style="background:${color}22;color:${color}">${p.tipus||'—'}</div>
-      <div class="pt">${p.subtipus||p.nom||'Hàbitat forestal'}</div>
+      <div class="pt">Hàbitats forestals</div>
+      <div class="pr"><span class="pk">tipus</span><span class="pv">${p.tipus||'—'}</span></div>
       <div class="pr"><span class="pk">EUNIS</span><span class="pv">${p.cod_eunis||'—'}</span></div>
       <div class="pr"><span class="pk">superfície</span><span class="pv">${areaHa}</span></div>
       <div class="pr"><span class="pk">HIC</span><span class="pv">${p.hic||'—'}</span></div>
