@@ -128,6 +128,9 @@
     .meta-label{color:var(--muted);font-family:var(--mono);font-size:10px;padding-top:2px}
     .meta-value{color:var(--text);line-height:1.4}
     .meta-empty{color:#ccc;font-style:italic}
+    #bm-attr{position:absolute;bottom:52px;left:50%;transform:translateX(-50%);z-index:10;font-family:var(--mono);font-size:10px;color:var(--muted);background:rgba(255,255,255,.8);padding:2px 8px;border-radius:3px;white-space:nowrap;pointer-events:auto}
+    #bm-attr a{color:var(--muted);text-decoration:none}
+    #bm-attr a:hover{color:var(--text);text-decoration:underline}
   </style>
 </head>
 <body>
@@ -213,13 +216,6 @@
       </div>
       <div class="group-body collapsed" id="grp-body-altres" style="max-height:0">
         <div class="li">
-          <div class="ll">Connectivitat del foc</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <button class="meta-btn" onclick="openMeta('raster_fireconn')" title="Metadades ISO 19115">ⓘ</button>
-            <label class="toggle"><input type="checkbox" onchange="toggleLayer('raster_fireconn',this.checked)"><span class="tt"></span></label>
-          </div>
-        </div>
-        <div class="li">
           <div class="ll">Hàbitats forestals</div>
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('habitats')" title="Metadades ISO 19115">ⓘ</button>
@@ -231,6 +227,13 @@
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('raster_bat')" title="Metadades ISO 19115">ⓘ</button>
             <label class="toggle"><input type="checkbox" onchange="toggleLayer('raster_bat',this.checked)"><span class="tt"></span></label>
+          </div>
+        </div>
+        <div class="li">
+          <div class="ll">Connectivitat del foc</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="meta-btn" onclick="openMeta('raster_fireconn')" title="Metadades ISO 19115">ⓘ</button>
+            <label class="toggle"><input type="checkbox" onchange="toggleLayer('raster_fireconn',this.checked)"><span class="tt"></span></label>
           </div>
         </div>
       </div>
@@ -303,11 +306,12 @@
   </a>
 </div>
 
+<div id="bm-attr"></div>
+
 <div id="bm">
-  <button class="bb active" onclick="setBM('osm',this)">OSM</button>
-  <button class="bb" onclick="setBM('topo',this)">Topo</button>
-  <button class="bb" onclick="setBM('carto',this)">Clar</button>
+  <button class="bb active" onclick="setBM('topo',this)">Topo</button>
   <button class="bb" onclick="setBM('sat',this)">Sat</button>
+  <button class="bb" onclick="setBM('carto',this)">Clar</button>
   <button class="bb" onclick="setBM('blank',this)">Cap</button>
 </div>
 
@@ -339,14 +343,22 @@
 
 const BM = {
   osm:  ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-  topo: ['https://tile.opentopomap.org/{z}/{x}/{y}.png'],
+  topo: ['https://geoserveis.icgc.cat/servei/catalunya/mapa-base/wmts/topografic/MON3857NW/{z}/{x}/{y}.png'],
   carto:['https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
   sat:  ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}']
 };
 
+const BM_ATTR = {
+  osm:   '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+  topo:  '© <a href="https://www.icgc.cat" target="_blank">ICGC</a> · CC-BY',
+  carto: '© <a href="https://carto.com" target="_blank">CARTO</a> · © OpenStreetMap contributors',
+  sat:   '© <a href="https://www.esri.com" target="_blank">Esri</a>, DigitalGlobe, USDA, USGS',
+  blank: ''
+};
+
 const map = new maplibregl.Map({
   container:'map',
-  style:{version:8,sources:{basemap:{type:'raster',tiles:BM.osm,tileSize:256,attribution:'© OpenStreetMap'}},layers:[{id:'basemap',type:'raster',source:'basemap'}]},
+  style:{version:8,sources:{basemap:{type:'raster',tiles:BM.topo,tileSize:256,attribution:'© ICGC'}},layers:[{id:'basemap',type:'raster',source:'basemap'}]},
   center:[2.168,41.393],zoom:12,attributionControl:false
 });
 
@@ -370,7 +382,9 @@ class ResetZoomControl {
 map.addControl(new maplibregl.NavigationControl(),'bottom-right');
 map.addControl(new ResetZoomControl(),'bottom-right');
 map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
-map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
+
+// Atribució inicial
+document.getElementById('bm-attr').innerHTML = BM_ATTR['topo'];
 
 function setMsg(t){ document.getElementById('loading-msg').textContent = t; }
 
@@ -940,24 +954,24 @@ const METADATA = {
     dateStamp:               ''
   },
   raster_fireconn: {
-    fileIdentifier:          'FireConn_Vig_His',
+    fileIdentifier:          '',
     title:                   'Connectivitat del foc',
-    date:                    '2025',
+    date:                    '',
     dateType:                'publicació',
-    abstract:                'Mapa de connectivitat del foc per a la Regió Metropolitana de Barcelona (RMB) modelat durant el període històric (2020-2023). Els valors representen les vies acumulades per a la propagació del foc entre àrees amb alta taxa de propagació (ROS m/min), estimades mitjançant l\'algorisme OMNISCAPE sobre simulacions de dinàmica forestal del model MEDFATE.',
+    abstract:                '',
     language:                'cat',
     topicCategory:           'biota',
     spatialRepresentationType: 'raster',
     referenceSystemInfo:     'EPSG:4326 - WGS 84',
     geographicBoundingBox:   'W: 2.000 E: 2.186 S: 41.384 N: 41.484',
     distributionFormat:      'GeoTIFF',
-    pointOfContact:          'Rodrigo Balaguer-Romano',
-    organisation:            'CREAF',
+    pointOfContact:          '',
+    organisation:            '',
     role:                    'propietari',
-    accessConstraints:       'CC BY 4.0',
-    useConstraints:          'Citar: Balaguer-Romano et al. (2025). DOI: 10.1016/j.jenvman.2025.127844',
-    metadataContact:         'r.balaguer@creaf.uab.cat',
-    dateStamp:               '2025'
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
   },
   raster_bat: {
     fileIdentifier:          'variables-biofisiques-arbrat-v1r1-bat-2016-2017',
@@ -1110,12 +1124,12 @@ function setBM(id,btn){
   document.querySelectorAll('.bb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   if (id === 'blank') {
-    map.getSource('basemap').setTiles(['data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwADhQGAWjR9awAAAABJRU5ErkJggg==']);
     map.setPaintProperty('basemap', 'raster-opacity', 0);
   } else {
     map.setPaintProperty('basemap', 'raster-opacity', 1);
     map.getSource('basemap').setTiles(BM[id]);
   }
+  document.getElementById('bm-attr').innerHTML = BM_ATTR[id] || '';
 }
 
 function resetZoom(){
