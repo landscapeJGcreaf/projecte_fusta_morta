@@ -213,6 +213,13 @@
       </div>
       <div class="group-body collapsed" id="grp-body-altres" style="max-height:0">
         <div class="li">
+          <div class="ll">Connectivitat del foc</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="meta-btn" onclick="openMeta('raster_fireconn')" title="Metadades ISO 19115">ⓘ</button>
+            <label class="toggle"><input type="checkbox" onchange="toggleLayer('raster_fireconn',this.checked)"><span class="tt"></span></label>
+          </div>
+        </div>
+        <div class="li">
           <div class="ll">Hàbitats forestals</div>
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('habitats')" title="Metadades ISO 19115">ⓘ</button>
@@ -255,6 +262,7 @@
       <div class="leg" id="leg-picots-3"><div class="ld" style="background:#27ae60"></div>Picot verd ibèric</div>
       <div class="leg" id="leg-raster_ciclisme"><div class="ld" style="background:linear-gradient(to right,#440154,#31688e,#35b779,#fde725);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Ciclistes</div>
       <div class="leg" id="leg-raster"><div class="ld" style="background:linear-gradient(to right,#440154,#31688e,#35b779,#fde725);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Corredors</div>
+      <div class="leg" id="leg-fireconn"><div class="ld" style="background:linear-gradient(to right,#ffffb2,#fecc5c,#fd8d3c,#f03b20,#bd0026);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Connectivitat del foc</div>
       <div class="leg" id="leg-hab-1"><div class="ld" style="background:#005a32;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Boscos aciculifolis</div>
       <div class="leg" id="leg-hab-2"><div class="ld" style="background:#41ab5d;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Boscos esclerofil·les i laurifolis</div>
       <div class="leg" id="leg-hab-3"><div class="ld" style="background:#a1d99b;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Boscos caducifolis, planifolis</div>
@@ -372,7 +380,7 @@ const DATA = {};
 map.on('load', async () => {
   try {
     setMsg('Carregant districtes…');
-    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats] = await Promise.all([
+    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats, fireconnData] = await Promise.all([
       fetch('dades/arbres_interes_local.geojson').then(r=>{ if(!r.ok) throw new Error('arbres_interes_local.geojson'); return r.json(); }),
       fetch('dades/biotroncs.geojson').then(r=>{ if(!r.ok) throw new Error('biotroncs.geojson'); return r.json(); }),
       fetch('dades/districtes_unitats.geojson').then(r=>{ if(!r.ok) throw new Error('districtes_unitats.geojson'); return r.json(); }),
@@ -382,6 +390,7 @@ map.on('load', async () => {
       fetch('dades/raster_corredors.json').then(r=>{ if(!r.ok) throw new Error('raster_corredors.json'); return r.json(); }),
       fetch('dades/raster_ciclisme_data.json').then(r=>{ if(!r.ok) throw new Error('raster_ciclisme_data.json'); return r.json(); }),
       fetch('dades/habitats_boscos_2022.geojson').then(r=>{ if(!r.ok) throw new Error('habitats_boscos_2022.geojson'); return r.json(); }),
+      fetch('dades/raster_fireconn.json').then(r=>{ if(!r.ok) throw new Error('raster_fireconn.json'); return r.json(); }),
     ]);
 
     // Guarda per la taula
@@ -393,6 +402,7 @@ map.on('load', async () => {
     window.RASTER_DATA = corredorsData;
     window.RASTER_CICLISME = ciclismeData;
     DATA.habitats = habitats.features;
+    window.RASTER_FIRECONN = fireconnData;
 
     // Recomptes
     document.getElementById('cnt-arbres').textContent  = arbres.features.length;
@@ -410,6 +420,20 @@ map.on('load', async () => {
 
 
 
+
+    // ── RASTER FIRECONN ──
+    map.addSource('fireconn-src', {
+      type: 'image',
+      url: 'dades/raster_fireconn.png',
+      coordinates: [
+        [2.000206395, 41.484213816],
+        [2.185888673, 41.484213816],
+        [2.185888673, 41.38369034],
+        [2.000206395, 41.38369034]
+      ]
+    });
+    map.addLayer({id:'raster-fireconn-layer',type:'raster',source:'fireconn-src',
+      paint:{'raster-opacity':0.95}});
     // ── RASTER BAT ──
     map.addSource('raster-bat-src', {
       type: 'image',
@@ -570,6 +594,16 @@ function showPicotPopup(lngLat,p){
 }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
+function getRasterFireconnVal(lngLat) {
+  if (!window.RASTER_FIRECONN) return null;
+  if (!map.getLayer('raster-fireconn-layer')) return null;
+  if (map.getLayoutProperty('raster-fireconn-layer','visibility') === 'none') return null;
+  const col = Math.floor((lngLat.lng - RASTER_FIRECONN.origin_lon) / RASTER_FIRECONN.dx);
+  const row = Math.floor((RASTER_FIRECONN.origin_lat - lngLat.lat) / RASTER_FIRECONN.dy);
+  if (col < 0 || col >= RASTER_FIRECONN.width || row < 0 || row >= RASTER_FIRECONN.height) return null;
+  return RASTER_FIRECONN.data[row][col];
+}
+
 function getRasterBatVal(lngLat) {
   if (!window.RASTER_BAT) return null;
   if (!map.getLayer('raster-bat-layer')) return null;
@@ -610,6 +644,7 @@ function initEvents(){
     const rasterVal = getRasterVal(e.lngLat);
     const ciclismeVal = getRasterCiclismeVal(e.lngLat);
     const batVal = getRasterBatVal(e.lngLat);
+    const fireconnVal = getRasterFireconnVal(e.lngLat);
 
     if      (arbres.length)   showArbrePopup(e.lngLat, arbres[0].properties);
     else if (bio.length)      showBioPopup(e.lngLat, bio[0].properties);
@@ -619,24 +654,25 @@ function initEvents(){
     else if (habFeats.length)  showHabPopup(e.lngLat, habFeats[0].properties);
     else if (dist.length) {
       const p = dist[0].properties;
-      const rasterActive = map.getLayer('raster-layer') && map.getLayoutProperty('raster-layer','visibility') !== 'none';
-      const rasterVal = rasterActive ? getRasterVal(e.lngLat) : null;
+      const rasterActive    = map.getLayer('raster-layer') && map.getLayoutProperty('raster-layer','visibility') !== 'none';
+      const ciclismeActive  = map.getLayer('raster-ciclisme-layer') && map.getLayoutProperty('raster-ciclisme-layer','visibility') !== 'none';
+      const batActive       = map.getLayer('raster-bat-layer') && map.getLayoutProperty('raster-bat-layer','visibility') !== 'none';
+      const fireconnActive  = map.getLayer('raster-fireconn-layer') && map.getLayoutProperty('raster-fireconn-layer','visibility') !== 'none';
+      const rv = rasterActive   ? getRasterVal(e.lngLat)          : null;
+      const rasterRow    = (rv !== null)           ? `<div class="pr"><span class="pk">corredors</span><span class="pv" style="font-family:var(--mono)">${rv.toLocaleString('ca')}</span></div>` : '';
+      const ciclismeRow  = (ciclismeActive && ciclismeVal !== null)  ? `<div class="pr"><span class="pk">ciclistes</span><span class="pv" style="font-family:var(--mono)">${ciclismeVal.toLocaleString('ca')}</span></div>` : '';
+      const batRow       = (batActive && batVal !== null)             ? `<div class="pr"><span class="pk">biomassa (t/ha)</span><span class="pv" style="font-family:var(--mono)">${batVal.toLocaleString('ca')}</span></div>` : '';
+      const fireconnRow  = (fireconnActive && fireconnVal !== null)   ? `<div class="pr"><span class="pk">connectivitat foc</span><span class="pv" style="font-family:var(--mono)">${fireconnVal.toLocaleString('ca')}</span></div>` : '';
 
-      const ciclismeActive = map.getLayer('raster-ciclisme-layer') && map.getLayoutProperty('raster-ciclisme-layer','visibility') !== 'none';
-      if ((rasterActive && rasterVal !== null) || (ciclismeActive && ciclismeVal !== null) || (map.getLayer('raster-bat-layer') && map.getLayoutProperty('raster-bat-layer','visibility') !== 'none' && batVal !== null)) {
-        const rasterRow  = (rasterActive && rasterVal !== null)   ? `<div class="pr"><span class="pk">corredors</span><span class="pv" style="font-family:var(--mono)">${rasterVal.toLocaleString('ca')}</span></div>` : '';
-        const ciclismeRow = (ciclismeActive && ciclismeVal !== null) ? `<div class="pr"><span class="pk">ciclistes</span><span class="pv" style="font-family:var(--mono)">${ciclismeVal.toLocaleString('ca')}</span></div>` : '';
-        const batActive = map.getLayer('raster-bat-layer') && map.getLayoutProperty('raster-bat-layer','visibility') !== 'none';
-        const batRow = (batActive && batVal !== null) ? `<div class="pr"><span class="pk">biomassa (t/ha)</span><span class="pv" style="font-family:var(--mono)">${batVal.toLocaleString('ca')}</span></div>` : '';
+      if (rv !== null || (ciclismeActive && ciclismeVal !== null) || (batActive && batVal !== null) || (fireconnActive && fireconnVal !== null)) {
         popup.setLngLat(e.lngLat).setHTML(`
           <div class="pi">
             <div class="pt">${p.nom}</div>
             <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
             <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
-            ${rasterRow}${ciclismeRow}${batRow}
+            ${rasterRow}${ciclismeRow}${batRow}${fireconnRow}
           </div>`).addTo(map);
       } else {
-        // Només districte
         popup.setLngLat(e.lngLat).setHTML(`
           <div class="pi">
             <div class="pt">${p.nom}</div>
@@ -644,16 +680,18 @@ function initEvents(){
             <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
           </div>`).addTo(map);
       }
-    } else if (rasterVal !== null || ciclismeVal !== null || batVal !== null) {
+    } else if (rasterVal !== null || ciclismeVal !== null || batVal !== null || fireconnVal !== null) {
       const rasterActive   = map.getLayer('raster-layer') && map.getLayoutProperty('raster-layer','visibility') !== 'none';
       const ciclismeActive = map.getLayer('raster-ciclisme-layer') && map.getLayoutProperty('raster-ciclisme-layer','visibility') !== 'none';
       const batActive      = map.getLayer('raster-bat-layer') && map.getLayoutProperty('raster-bat-layer','visibility') !== 'none';
-      const rasterRow   = (rasterActive && rasterVal !== null)     ? `<div class="pr"><span class="pk">corredors</span><span class="pv" style="font-family:var(--mono)">${rasterVal.toLocaleString('ca')}</span></div>` : '';
-      const ciclismeRow = (ciclismeActive && ciclismeVal !== null) ? `<div class="pr"><span class="pk">ciclistes</span><span class="pv" style="font-family:var(--mono)">${ciclismeVal.toLocaleString('ca')}</span></div>` : '';
-      const batRow      = (batActive && batVal !== null)           ? `<div class="pr"><span class="pk">biomassa (t/ha)</span><span class="pv" style="font-family:var(--mono)">${batVal.toLocaleString('ca')}</span></div>` : '';
+      const fireconnActive = map.getLayer('raster-fireconn-layer') && map.getLayoutProperty('raster-fireconn-layer','visibility') !== 'none';
+      const rasterRow    = (rasterActive && rasterVal !== null)       ? `<div class="pr"><span class="pk">corredors</span><span class="pv" style="font-family:var(--mono)">${rasterVal.toLocaleString('ca')}</span></div>` : '';
+      const ciclismeRow  = (ciclismeActive && ciclismeVal !== null)   ? `<div class="pr"><span class="pk">ciclistes</span><span class="pv" style="font-family:var(--mono)">${ciclismeVal.toLocaleString('ca')}</span></div>` : '';
+      const batRow       = (batActive && batVal !== null)              ? `<div class="pr"><span class="pk">biomassa (t/ha)</span><span class="pv" style="font-family:var(--mono)">${batVal.toLocaleString('ca')}</span></div>` : '';
+      const fireconnRow  = (fireconnActive && fireconnVal !== null)    ? `<div class="pr"><span class="pk">connectivitat foc</span><span class="pv" style="font-family:var(--mono)">${fireconnVal.toLocaleString('ca')}</span></div>` : '';
       popup.setLngLat(e.lngLat).setHTML(`
         <div class="pi">
-          ${rasterRow}${ciclismeRow}${batRow}
+          ${rasterRow}${ciclismeRow}${batRow}${fireconnRow}
         </div>`).addTo(map);
     }
   });
@@ -680,6 +718,7 @@ const LAYERS={
   raster:    ['raster-layer'],
   raster_ciclisme: ['raster-ciclisme-layer'],
   raster_bat: ['raster-bat-layer'],
+  raster_fireconn: ['raster-fireconn-layer'],
   habitats:  ['hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera']
 };
 const LEGEND={
@@ -692,10 +731,11 @@ const LEGEND={
   raster:    ['leg-raster'],
   raster_ciclisme: ['leg-raster_ciclisme'],
   raster_bat:      ['leg-raster_bat'],
+  raster_fireconn: ['leg-fireconn'],
   habitats:  ['leg-hab-1','leg-hab-2','leg-hab-3','leg-hab-4']
 };
 
-const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, habitats:false};
+const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, habitats:false};
 
 function toggleLayer(id,v){
   layerState[id] = v;
@@ -898,6 +938,26 @@ const METADATA = {
     useConstraints:          '',
     metadataContact:         '',
     dateStamp:               ''
+  },
+  raster_fireconn: {
+    fileIdentifier:          'FireConn_Vig_His',
+    title:                   'Connectivitat del foc',
+    date:                    '2025',
+    dateType:                'publicació',
+    abstract:                'Mapa de connectivitat del foc per a la Regió Metropolitana de Barcelona (RMB) modelat durant el període històric (2020-2023). Els valors representen les vies acumulades per a la propagació del foc entre àrees amb alta taxa de propagació (ROS m/min), estimades mitjançant l\'algorisme OMNISCAPE sobre simulacions de dinàmica forestal del model MEDFATE.',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'raster',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.000 E: 2.186 S: 41.384 N: 41.484',
+    distributionFormat:      'GeoTIFF',
+    pointOfContact:          'Rodrigo Balaguer-Romano',
+    organisation:            'CREAF',
+    role:                    'propietari',
+    accessConstraints:       'CC BY 4.0',
+    useConstraints:          'Citar: Balaguer-Romano et al. (2025). DOI: 10.1016/j.jenvman.2025.127844',
+    metadataContact:         'r.balaguer@creaf.uab.cat',
+    dateStamp:               '2025'
   },
   raster_bat: {
     fileIdentifier:          'variables-biofisiques-arbrat-v1r1-bat-2016-2017',
