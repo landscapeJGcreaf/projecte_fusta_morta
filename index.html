@@ -1263,9 +1263,11 @@ function openTable(id) {
 }
 
 function clearSelection() {
-  if (map.getSource('zin-selected-src')) {
-    map.getSource('zin-selected-src').setData({type:'FeatureCollection',features:[]});
-  }
+  ['zin-selected-src','refugis-selected-src'].forEach(srcId => {
+    if (map.getSource(srcId)) {
+      map.getSource(srcId).setData({type:'FeatureCollection',features:[]});
+    }
+  });
   document.querySelectorAll('#attr-tbody tr').forEach(tr => {
     tr.style.background = '';
     tr.style.fontWeight = '';
@@ -1291,7 +1293,7 @@ function zoomToFeature(id, idx) {
     tr.style.fontWeight = i===idx ? '600' : '';
   });
 
-  if (id === 'zin') {
+  if (id === 'zin' || id === 'refugis') {
     // Per polígons: calcula el centre i ressalta
     const geom = feat.geometry;
     let allCoords = [];
@@ -1308,19 +1310,23 @@ function zoomToFeature(id, idx) {
     map.fitBounds(bounds, {padding:80, maxZoom:18, duration:800});
 
     // Ressalta el polígon seleccionat
-    if (map.getSource('zin-selected-src')) {
-      map.getSource('zin-selected-src').setData(feat);
+    const srcId = id === 'zin' ? 'zin-selected-src' : 'refugis-selected-src';
+    const fillId = id === 'zin' ? 'zin-selected' : 'refugis-selected';
+    const lineId = id === 'zin' ? 'zin-selected-line' : 'refugis-selected-line';
+
+    if (map.getSource(srcId)) {
+      map.getSource(srcId).setData(feat);
     } else {
-      map.addSource('zin-selected-src', {type:'geojson', data:feat});
-      map.addLayer({id:'zin-selected', type:'fill', source:'zin-selected-src',
+      map.addSource(srcId, {type:'geojson', data:feat});
+      map.addLayer({id:fillId, type:'fill', source:srcId,
         paint:{'fill-color':'#ffff00','fill-opacity':0.5,'fill-outline-color':'#ff6600'}});
-      map.addLayer({id:'zin-selected-line', type:'line', source:'zin-selected-src',
+      map.addLayer({id:lineId, type:'line', source:srcId,
         paint:{'line-color':'#ff6600','line-width':2.5}});
     }
-    // La selecció es manté fins que es faci clic en un altre registre
     document.getElementById('clear-sel').style.display = 'block';
 
-    showZinPopup([centerLng, centerLat], p);
+    if (id === 'zin') showZinPopup([centerLng, centerLat], p);
+    else showRefugisPopup([centerLng, centerLat], p);
 
   } else {
     const coords = feat.geometry.coordinates;
