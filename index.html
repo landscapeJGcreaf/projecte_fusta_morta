@@ -93,9 +93,9 @@
     .pv{line-height:1.4}
 
     /* COORDS */
-    #coords{position:absolute;bottom:16px;left:16px;z-index:10;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:4px 8px;font-family:var(--mono);font-size:10px;color:var(--muted);pointer-events:none;white-space:nowrap;opacity:.8}
+    #coords{position:absolute;bottom:76px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:4px 8px;font-family:var(--mono);font-size:10px;color:var(--muted);pointer-events:none;white-space:nowrap;opacity:.8}
     /* BASEMAP */
-    #bm{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:4px}    .bb{padding:6px 10px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+    #bm{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:4px}.bb{padding:6px 10px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
     .bb:hover{color:var(--text);border-color:var(--text)}
     .bb.active{background:var(--text);color:#fff;border-color:var(--text)}
     #creaf-logo{position:absolute;bottom:16px;right:56px;z-index:10;}
@@ -1011,9 +1011,9 @@ const METADATA = {
     dateStamp:               ''
   },
   raster_fireconn: {
-    fileIdentifier:          '',
+    fileIdentifier:          'FireConn_Vig_His',
     title:                   'Connectivitat del foc',
-    date:                    '',
+    date:                    '2025',
     dateType:                'publicació',
     abstract:                '',
     language:                'cat',
@@ -1023,7 +1023,7 @@ const METADATA = {
     geographicBoundingBox:   'W: 2.000 E: 2.186 S: 41.384 N: 41.484',
     distributionFormat:      'GeoTIFF',
     pointOfContact:          '',
-    organisation:            '',
+    organisation:            'CREAF',
     role:                    'propietari',
     accessConstraints:       '',
     useConstraints:          '',
