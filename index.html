@@ -173,6 +173,13 @@
         </div>
       </div>
       <div class="li">
+        <div class="ll">Parcs i jardins</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="meta-btn" onclick="openMeta('parcs')" title="Metadades ISO 19115">ⓘ</button>
+          <label class="toggle"><input type="checkbox" onchange="toggleLayer('parcs',this.checked)"><span class="tt"></span></label>
+        </div>
+      </div>
+      <div class="li">
         <div class="ll">Picots</div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="meta-btn" onclick="openMeta('picots')" title="Metadades ISO 19115">ⓘ</button>
@@ -277,6 +284,7 @@
       <div class="leg" id="leg-hab-3"><div class="ld" style="background:#a1d99b;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Boscos caducifolis, planifolis</div>
       <div class="leg" id="leg-hab-4"><div class="ld" style="background:#39ff14;opacity:.8;border-radius:2px;width:16px;height:10px"></div>Boscos de ribera</div>
       <div class="leg" id="leg-raster_bat"><div class="ld" style="background:linear-gradient(to right,#b2182b,#f4a582,#d9f0d3,#5aae61,#006837);border-radius:2px;width:32px;height:10px;flex-shrink:0"></div>Biomassa aèria total</div>
+      <div class="leg" id="leg-parcs"><div class="ld" style="background:#1a7a3c;border-radius:50%"></div>Parcs i jardins</div>
       <div class="leg" id="leg-refugis"><div class="ld" style="background:#9b2d8e;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Refugis de biodiversitat</div>
       <div class="leg" id="leg-zin-1"><div class="ld" style="background:#7bc77c;opacity:.8;border-radius:2px;width:16px;height:10px;border:1px solid #232323"></div>ZIN Llenyós</div>
       <div class="leg" id="leg-zin-2"><div class="ld" style="background:#f7fcf5;border-radius:2px;width:16px;height:10px;border:2px solid #0000ff"></div>ZIN Herbaci</div>
@@ -298,6 +306,9 @@
       </div>
       <div class="stats-row" style="margin-top:8px">
         <div class="stat-box" id="sb-zin" onclick="openTable('zin')"><div class="stat-num" style="color:#7bc77c" id="cnt-zin">—</div><div class="stat-lbl">Zones Interès Natural</div></div>
+      </div>
+      <div class="stats-row" style="margin-top:8px">
+        <div class="stat-box" id="sb-parcs" onclick="openTable('parcs')"><div class="stat-num" style="color:#1a7a3c" id="cnt-parcs">—</div><div class="stat-lbl">Parcs i jardins</div></div>
       </div>
       <div class="stats-row" style="margin-top:8px">
         <div class="stat-box" id="sb-refugis" onclick="openTable('refugis')"><div class="stat-num" style="color:#9b2d8e" id="cnt-refugis">—</div><div class="stat-lbl">Refugis biodiversitat</div></div>
@@ -404,7 +415,7 @@ const DATA = {};
 map.on('load', async () => {
   try {
     setMsg('Carregant districtes…');
-    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats, refugis, fireconnData] = await Promise.all([
+    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats, refugis, parcs, fireconnData] = await Promise.all([
       fetch('dades/arbres_interes_local.geojson').then(r=>{ if(!r.ok) throw new Error('arbres_interes_local.geojson'); return r.json(); }),
       fetch('dades/biotroncs.geojson').then(r=>{ if(!r.ok) throw new Error('biotroncs.geojson'); return r.json(); }),
       fetch('dades/districtes_unitats.geojson').then(r=>{ if(!r.ok) throw new Error('districtes_unitats.geojson'); return r.json(); }),
@@ -415,6 +426,7 @@ map.on('load', async () => {
       fetch('dades/raster_ciclisme_data.json').then(r=>{ if(!r.ok) throw new Error('raster_ciclisme_data.json'); return r.json(); }),
       fetch('dades/habitats_boscos_2022.geojson').then(r=>{ if(!r.ok) throw new Error('habitats_boscos_2022.geojson'); return r.json(); }),
       fetch('dades/refugis_biodiversitat.geojson').then(r=>{ if(!r.ok) throw new Error('refugis_biodiversitat.geojson'); return r.json(); }),
+      fetch('dades/parcs_jardins.geojson').then(r=>{ if(!r.ok) throw new Error('parcs_jardins.geojson'); return r.json(); }),
       fetch('dades/raster_fireconn.json').then(r=>{ if(!r.ok) throw new Error('raster_fireconn.json'); return r.json(); }),
     ]);
 
@@ -429,6 +441,7 @@ map.on('load', async () => {
     DATA.habitats = habitats.features;
     window.RASTER_FIRECONN = fireconnData;
     DATA.refugis = refugis.features;
+    DATA.parcs = parcs.features;
 
     // Recomptes
     document.getElementById('cnt-arbres').textContent  = arbres.features.length;
@@ -437,6 +450,7 @@ map.on('load', async () => {
     document.getElementById('cnt-zin').textContent     = zin.features.length;
     document.getElementById('cnt-habitats').textContent = habitats.features.length;
     document.getElementById('cnt-refugis').textContent  = refugis.features.length;
+    document.getElementById('cnt-parcs').textContent    = parcs.features.length;
 
     // Centra als arbres
     const lngs=arbres.features.map(f=>f.geometry.coordinates[0]);
@@ -473,7 +487,7 @@ map.on('load', async () => {
       ]
     });
     map.addLayer({id:'raster-bat-layer',type:'raster',source:'raster-bat-src',
-      paint:{'raster-opacity':0.95}});
+      paint:{'raster-opacity':1}});
     // ── RASTER CICLISME ──
     map.addSource('raster-ciclisme-src', {
       type: 'image',
@@ -533,6 +547,13 @@ map.on('load', async () => {
       filter:['==',['get','tipus'],'Boscos i bosquines de ribera o de llocs molt humits'],
       paint:{'fill-color':'#39ff14','fill-opacity':0.45,'fill-outline-color':'#00cc00'}});
 
+
+    // ── PARCS I JARDINS ──
+    map.addSource('parcs-src',{type:'geojson',data:parcs});
+    map.addLayer({id:'parcs-outer',type:'circle',source:'parcs-src',
+      paint:{'circle-radius':7,'circle-color':'#ffffff'}});
+    map.addLayer({id:'parcs',type:'circle',source:'parcs-src',
+      paint:{'circle-radius':5,'circle-color':'#1a7a3c','circle-stroke-width':1.5,'circle-stroke-color':'#ffffff'}});
     // ── REFUGIS BIODIVERSITAT ──
     map.addSource('refugis-src',{type:'geojson',data:refugis});
     map.addLayer({id:'refugis-fill',type:'fill',source:'refugis-src',
@@ -577,6 +598,16 @@ map.on('load', async () => {
 
 // ── POPUPS ────────────────────────────────────────────────────────────────────
 const popup = new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:14});
+
+function showParcsPopup(lngLat,p){
+  popup.setLngLat(lngLat).setHTML(`
+    <div class="pi">
+      <div class="pt">${p.nom||'Parc o jardí'}</div>
+      <div class="pr"><span class="pk">adreça</span><span class="pv">${p.adreca||'—'}</span></div>
+      <div class="pr"><span class="pk">barri</span><span class="pv">${p.barri||'—'}</span></div>
+      <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte||'—'}</span></div>
+    </div>`).addTo(map);
+}
 
 function showRefugisPopup(lngLat,p){
   popup.setLngLat(lngLat).setHTML(`
@@ -685,6 +716,7 @@ function initEvents(){
     const zinFeats = map.queryRenderedFeatures(e.point,{layers:['zin-llenyos','zin-herbaci','zin-zina']});
     const habFeats  = map.queryRenderedFeatures(e.point,{layers:['hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera']});
     const refFeats  = map.queryRenderedFeatures(e.point,{layers:['refugis-fill']});
+    const parcFeats = map.queryRenderedFeatures(e.point,{layers:['parcs']});
     const dist     = map.queryRenderedFeatures(e.point,{layers:['dist-fill']});
     const rasterVal = getRasterVal(e.lngLat);
     const ciclismeVal = getRasterCiclismeVal(e.lngLat);
@@ -698,6 +730,7 @@ function initEvents(){
     else if (zinFeats.length) showZinPopup(e.lngLat, zinFeats[0].properties);
     else if (habFeats.length)  showHabPopup(e.lngLat, habFeats[0].properties);
     else if (refFeats.length)  showRefugisPopup(e.lngLat, refFeats[0].properties);
+    else if (parcFeats.length) showParcsPopup(e.lngLat, parcFeats[0].properties);
     else if (dist.length) {
       const p = dist[0].properties;
       const rasterActive    = map.getLayer('raster-layer') && map.getLayoutProperty('raster-layer','visibility') !== 'none';
@@ -742,7 +775,7 @@ function initEvents(){
     }
   });
   map.on('mousemove', e => {
-    const hits=map.queryRenderedFeatures(e.point,{layers:['arbres','biotroncs','cumuls','picots-garser-gros','picots-garser-petit','picots-verd','zin-llenyos','zin-herbaci','zin-zina','hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera','refugis-fill','dist-fill']});
+    const hits=map.queryRenderedFeatures(e.point,{layers:['arbres','biotroncs','cumuls','picots-garser-gros','picots-garser-petit','picots-verd','zin-llenyos','zin-herbaci','zin-zina','hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera','refugis-fill','parcs','dist-fill']});
     map.getCanvas().style.cursor=hits.length?'pointer':'';
   });
   map.on('click','cl-halo', e => {
@@ -766,7 +799,8 @@ const LAYERS={
   raster_bat: ['raster-bat-layer'],
   raster_fireconn: ['raster-fireconn-layer'],
   habitats:  ['hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera'],
-  refugis:   ['refugis-fill','refugis-line']
+  refugis:   ['refugis-fill','refugis-line'],
+  parcs:     ['parcs','parcs-outer']
 };
 const LEGEND={
   arbres:    ['leg-arbres'],
@@ -780,10 +814,11 @@ const LEGEND={
   raster_bat:      ['leg-raster_bat'],
   raster_fireconn: ['leg-fireconn'],
   habitats:  ['leg-hab-1','leg-hab-2','leg-hab-3','leg-hab-4'],
-  refugis:   ['leg-refugis']
+  refugis:   ['leg-refugis'],
+  parcs:     ['leg-parcs']
 };
 
-const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, habitats:false};
+const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, parcs:false, habitats:false};
 
 function toggleLayer(id,v){
   layerState[id] = v;
@@ -810,6 +845,9 @@ function toggleLayer(id,v){
   if(id==='refugis'){
     document.getElementById('sb-refugis').classList.toggle('off',!v);
   }
+  if(id==='parcs'){
+    document.getElementById('sb-parcs').classList.toggle('off',!v);
+  }
   if(id==='biotroncs'||id==='cumuls'){
     const hide = !layerState.biotroncs && !layerState.cumuls;
     document.getElementById('sb-bio').classList.toggle('off', hide);
@@ -823,6 +861,7 @@ function initSearch(arbreFeats, bioFeats, picotFeats){
   const all=[
     ...arbreFeats.map(f=>({...f,_t:'arbre'})),
     ...bioFeats.map(f=>({...f,_t:'bio'})),
+    ...(DATA.parcs||[]).map(f=>({...f,_t:'parc'})),
     ...picotFeats.map(f=>({...f,_t:'picot'}))
   ];
   inp.addEventListener('input',()=>{
@@ -831,7 +870,7 @@ function initSearch(arbreFeats, bioFeats, picotFeats){
     if(!q){res.style.display='none';return}
     const hits=all.filter(f=>{
       const p=f.properties;
-      const vals=f._t==='arbre'?[p.name,p.addresse_3,p.barri,p.districte]:
+      const vals=f._t==='arbre'?[p.name,p.addresse_3,p.barri,p.districte]:f._t==='parc'?[p.nom,p.adreca,p.barri,p.districte]:
                  f._t==='bio'?[p.nom_espai,p.localitzacio,p.barri,p.districte]:
                  [p.nom_cat,p.nom_sci,p.localitat];
       return vals.some(v=>String(v||'').toLowerCase().includes(q));
@@ -839,9 +878,9 @@ function initSearch(arbreFeats, bioFeats, picotFeats){
     if(!hits.length){res.style.display='none';return}
     hits.forEach(f=>{
       const p=f.properties;
-      const icon=f._t==='arbre'?'🌳':f._t==='bio'?'🪵':'🐦';
-      const title=f._t==='arbre'?(p.name||'Arbre'):f._t==='bio'?(p.nom_espai||p.localitzacio||'Biotronc'):(p.nom_cat||'Picot');
-      const sub=f._t==='arbre'?(p.addresse_3||p.barri||''):f._t==='bio'?(p.tipus||''):(p.localitat||'');
+      const icon=f._t==='arbre'?'🌳':f._t==='bio'?'🪵':f._t==='parc'?'🌿':'🐦';
+      const title=f._t==='arbre'?(p.name||'Arbre'):f._t==='bio'?(p.nom_espai||p.localitzacio||'Biotronc'):f._t==='parc'?(p.nom||'Parc'):(p.nom_cat||'Picot');
+      const sub=f._t==='arbre'?(p.addresse_3||p.barri||''):f._t==='bio'?(p.tipus||''):f._t==='parc'?(p.barri||''):(p.localitat||'');
       const d=document.createElement('div');
       d.className='si';
       d.innerHTML=`<strong>${icon} ${title}</strong><span>${sub}</span>`;
@@ -851,6 +890,7 @@ function initSearch(arbreFeats, bioFeats, picotFeats){
         map.flyTo({center:c,zoom:16,duration:900});
         if(f._t==='arbre') showArbrePopup(c,p);
         else if(f._t==='bio') showBioPopup(c,p);
+        else if(f._t==='parc') showParcsPopup(c,p);
         else showPicotPopup(c,p);
       };
       res.appendChild(d);
@@ -871,11 +911,11 @@ map.on('mousemove',e=>{
 // ── METADADES ISO 19115 ───────────────────────────────────────────────────────
 const METADATA = {
   arbres: {
-    fileIdentifier:          '',
+    fileIdentifier:          'arbres_interes_local_BCN',
     title:                   'Arbres d\'interès local de Barcelona',
-    date:                    '',
+    date:                    '2026',
     dateType:                'publicació',
-    abstract:                '',
+    abstract:                'El Catàleg d’arbres d’interès local conté els exemplars d’arbres, palmeres i arbustos més valuosos que hi ha als carrers i als jardins particulars de Barcelona',
     language:                'cat',
     topicCategory:           'biota',
     spatialRepresentationType: 'vector',
@@ -883,7 +923,7 @@ const METADATA = {
     geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.347 N: 41.468',
     distributionFormat:      'GeoJSON',
     pointOfContact:          '',
-    organisation:            '',
+    organisation:            'Ajuntament de Barcelona',
     role:                    'propietari',
     accessConstraints:       '',
     useConstraints:          '',
@@ -974,6 +1014,26 @@ const METADATA = {
     fileIdentifier:          '',
     title:                   'Hàbitats forestals',
     date:                    '2022',
+    dateType:                'publicació',
+    abstract:                '',
+    language:                'cat',
+    topicCategory:           'biota',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.317 N: 41.468',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            'UB',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  parcs: {
+    fileIdentifier:          '',
+    title:                   'Parcs i jardins de Barcelona',
+    date:                    '',
     dateType:                'publicació',
     abstract:                '',
     language:                'cat',
@@ -1203,7 +1263,8 @@ const TABLE_CONFIG = {
   picots: { title:"🐦 Observacions de picots", cols:['nom_cat','nom_sci','data','localitat','nombre'] },
   zin:    { title:"🌿 Zones d'Interès Natural",  cols:['tipus','codi','tipus_sub','sup_m2','data_alta'] },
   habitats: { title:"🌲 Hàbitats forestals", cols:['tipus','subtipus','cod_eunis','area_m2','amenaca','hic'] },
-  refugis:  { title:"🌿 Refugis de biodiversitat", cols:['nom','districte','ha','ident'] }
+  refugis:  { title:"🌿 Refugis de biodiversitat", cols:['nom','districte','ha','ident'] },
+  parcs:    { title:"🌳 Parcs i jardins", cols:['nom','adreca','barri','districte'] }
 };
 
 let currentTable = null;
