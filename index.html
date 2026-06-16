@@ -380,7 +380,7 @@ const BM_ATTR = {
 const map = new maplibregl.Map({
   container:'map',
   style:{version:8,sources:{basemap:{type:'raster',tiles:BM.topo,tileSize:256,attribution:'© ICGC'}},layers:[{id:'basemap',type:'raster',source:'basemap'}]},
-  center:[2.168,41.393],zoom:12,attributionControl:false
+  center:[2.168,41.393],zoom:12,minZoom:11,attributionControl:false
 });
 
 // Control personalitzat de reset zoom
@@ -514,6 +514,7 @@ map.on('load', async () => {
     });
     map.addLayer({id:'raster-layer',type:'raster',source:'raster-src',
       paint:{'raster-opacity':0.95}});
+
     // ── ZIN / ZINA (per sota de districtes) ──
     map.addSource('zin-src',{type:'geojson',data:zin});
     map.addLayer({id:'zin-zina',type:'fill',source:'zin-src',
@@ -528,8 +529,11 @@ map.on('load', async () => {
 
     // ── DISTRICTES (sempre al damunt de ZIN) ──
     map.addSource('dist-src',{type:'geojson',data:districtes});
+
     map.addLayer({id:'dist-fill',type:'fill',source:'dist-src',paint:{'fill-color':'#1a4a6b','fill-opacity':0.07}});
     map.addLayer({id:'dist-line',type:'line',source:'dist-src',paint:{'line-color':'#1a4a6b','line-width':1.8,'line-opacity':0.6,'line-dasharray':[4,3]}});
+
+
 
 
     // ── HÀBITATS FORESTALS ──
