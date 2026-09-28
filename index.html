@@ -324,7 +324,7 @@
 <div id="bm-attr"></div>
 
 <div id="bm">
-  <button class="bb active" onclick="setBM('estandard',this)">Estàndard</button>
+  <button class="bb active" onclick="setBM('gris',this)">Gris</button>
   <button class="bb" onclick="setBM('sat',this)">Sat</button>
   <button class="bb" onclick="setBM('carto',this)">Clar</button>
   <button class="bb" onclick="setBM('blank',this)">Cap</button>
@@ -358,14 +358,14 @@
 
 const BM = {
   osm:  ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-  estandard: ['https://geoserveis.icgc.cat/servei/catalunya/mapa-base/wmts/estandard/MON3857NW/{z}/{x}/{y}.png'],
+  gris: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'],
   carto:['https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
   sat:  ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}']
 };
 
 const BM_ATTR = {
   osm:   '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
-  estandard: '© <a href="https://www.icgc.cat" target="_blank">ICGC</a> · CC-BY',
+  gris:  '© <a href="https://www.esri.com" target="_blank">Esri</a>, HERE, Garmin · © OpenStreetMap contributors',
   carto: '© <a href="https://carto.com" target="_blank">CARTO</a> · © OpenStreetMap contributors',
   sat:   '© <a href="https://www.esri.com" target="_blank">Esri</a>, DigitalGlobe, USDA, USGS',
   blank: ''
@@ -373,7 +373,7 @@ const BM_ATTR = {
 
 const map = new maplibregl.Map({
   container:'map',
-  style:{version:8,sources:{basemap:{type:'raster',tiles:BM.estandard,tileSize:256,attribution:'© ICGC'}},layers:[{id:'basemap',type:'raster',source:'basemap'}]},
+  style:{version:8,sources:{basemap:{type:'raster',tiles:BM.gris,tileSize:256,attribution:'© Esri'}},layers:[{id:'basemap',type:'raster',source:'basemap'}]},
   center:[2.168,41.393],zoom:12,minZoom:11,attributionControl:false
 });
 
@@ -399,7 +399,7 @@ map.addControl(new ResetZoomControl(),'bottom-right');
 map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
 
 // Atribució inicial
-document.getElementById('bm-attr').innerHTML = BM_ATTR['estandard'];
+document.getElementById('bm-attr').innerHTML = BM_ATTR['gris'];
 
 function setMsg(t){ document.getElementById('loading-msg').textContent = t; }
 
