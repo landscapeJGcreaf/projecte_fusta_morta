@@ -324,9 +324,9 @@
 <div id="bm-attr"></div>
 
 <div id="bm">
-  <button class="bb active" onclick="setBM('gris',this)">Gris</button>
+  <button class="bb active" onclick="setBM('topo',this)">Topo</button>
+  <button class="bb" onclick="setBM('gris',this)">Gris</button>
   <button class="bb" onclick="setBM('sat',this)">Sat</button>
-  <button class="bb" onclick="setBM('topo',this)">Topo</button>
   <button class="bb" onclick="setBM('blank',this)">Cap</button>
 </div>
 
@@ -374,7 +374,7 @@ const BM_ATTR = {
 const map = new maplibregl.Map({
   container:'map',
   style:{version:8,sources:{
-    basemap:{type:'raster',tiles:BM.gris,tileSize:256,attribution:'© Esri'}
+    basemap:{type:'raster',tiles:BM.topo,tileSize:256,attribution:'© Esri'}
   },
   layers:[
     {id:'basemap',type:'raster',source:'basemap'}
@@ -404,7 +404,7 @@ map.addControl(new ResetZoomControl(),'bottom-right');
 map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
 
 // Atribució inicial
-document.getElementById('bm-attr').innerHTML = BM_ATTR['gris'];
+document.getElementById('bm-attr').innerHTML = BM_ATTR['topo'];
 
 function setMsg(t){ document.getElementById('loading-msg').textContent = t; }
 
