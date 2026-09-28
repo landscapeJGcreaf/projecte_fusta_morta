@@ -1,0 +1,7 @@
+
+
+-- afegir transparencia a les capes
+-- millorar llegenda dels rasters
+-- arreglar titulos e informacion popups
+-- poder ocultar les capes, llegenda i recompte
+-- afegir capes que falten

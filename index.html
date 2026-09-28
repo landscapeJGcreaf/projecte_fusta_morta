@@ -6,6 +6,7 @@
   <title>Gestió fusta morta · Barcelona</title>
   <link href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" rel="stylesheet"/>
   <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -330,7 +331,7 @@
 <div id="bm-attr"></div>
 
 <div id="bm">
-  <button class="bb active" onclick="setBM('topo',this)">Topo</button>
+  <button class="bb active" onclick="setBM('estandard',this)">Estàndard</button>
   <button class="bb" onclick="setBM('sat',this)">Sat</button>
   <button class="bb" onclick="setBM('carto',this)">Clar</button>
   <button class="bb" onclick="setBM('blank',this)">Cap</button>
@@ -364,14 +365,14 @@
 
 const BM = {
   osm:  ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-  topo: ['https://geoserveis.icgc.cat/servei/catalunya/mapa-base/wmts/topografic/MON3857NW/{z}/{x}/{y}.png'],
+  estandard: ['https://geoserveis.icgc.cat/servei/catalunya/mapa-base/wmts/estandard/MON3857NW/{z}/{x}/{y}.png'],
   carto:['https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
   sat:  ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}']
 };
 
 const BM_ATTR = {
   osm:   '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
-  topo:  '© <a href="https://www.icgc.cat" target="_blank">ICGC</a> · CC-BY',
+  estandard: '© <a href="https://www.icgc.cat" target="_blank">ICGC</a> · CC-BY',
   carto: '© <a href="https://carto.com" target="_blank">CARTO</a> · © OpenStreetMap contributors',
   sat:   '© <a href="https://www.esri.com" target="_blank">Esri</a>, DigitalGlobe, USDA, USGS',
   blank: ''
@@ -379,7 +380,7 @@ const BM_ATTR = {
 
 const map = new maplibregl.Map({
   container:'map',
-  style:{version:8,sources:{basemap:{type:'raster',tiles:BM.topo,tileSize:256,attribution:'© ICGC'}},layers:[{id:'basemap',type:'raster',source:'basemap'}]},
+  style:{version:8,sources:{basemap:{type:'raster',tiles:BM.estandard,tileSize:256,attribution:'© ICGC'}},layers:[{id:'basemap',type:'raster',source:'basemap'}]},
   center:[2.168,41.393],zoom:12,minZoom:11,attributionControl:false
 });
 
@@ -405,7 +406,7 @@ map.addControl(new ResetZoomControl(),'bottom-right');
 map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
 
 // Atribució inicial
-document.getElementById('bm-attr').innerHTML = BM_ATTR['topo'];
+document.getElementById('bm-attr').innerHTML = BM_ATTR['estandard'];
 
 function setMsg(t){ document.getElementById('loading-msg').textContent = t; }
 
@@ -529,6 +530,15 @@ map.on('load', async () => {
 
     // ── DISTRICTES (sempre al damunt de ZIN) ──
     map.addSource('dist-src',{type:'geojson',data:districtes});
+
+    // ── MÀSCARA: enfosqueix tot el que queda fora del límit de Barcelona ──
+    try {
+      const polys = districtes.features.filter(f => f.geometry && /Polygon/.test(f.geometry.type));
+      const ciutat = polys.length > 1 ? turf.union(turf.featureCollection(polys)) : polys[0];
+      map.addSource('mask-src',{type:'geojson',data:turf.mask(ciutat)});
+      map.addLayer({id:'mask-fora-bcn',type:'fill',source:'mask-src',
+        paint:{'fill-color':'#0f1a24','fill-opacity':0.45}});
+    } catch(err) { console.warn('No s\'ha pogut crear la màscara del límit municipal', err); }
 
     map.addLayer({id:'dist-fill',type:'fill',source:'dist-src',paint:{'fill-color':'#1a4a6b','fill-opacity':0.07}});
     map.addLayer({id:'dist-line',type:'line',source:'dist-src',paint:{'line-color':'#1a4a6b','line-width':1.8,'line-opacity':0.6,'line-dasharray':[4,3]}});
