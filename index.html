@@ -36,6 +36,10 @@
     #search-box{position:absolute;top:16px;right:16px;z-index:10;width:230px;display:flex;flex-direction:column;gap:4px}
     #search-input{width:100%;padding:9px 12px;font-family:var(--sans);font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);box-shadow:var(--shadow);outline:none;transition:border-color .2s}
     #search-input::placeholder{color:var(--muted)}
+    #dist-select{width:100%;padding:8px 10px;font-family:var(--sans);font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);box-shadow:var(--shadow);outline:none;cursor:pointer}
+    #dist-select:focus{border-color:var(--green)}
+    .dist-zoom{display:block;margin-top:6px;font-size:12px;color:var(--green);text-decoration:none;font-weight:600}
+    .dist-zoom:hover{text-decoration:underline}
     #search-input:focus{border-color:var(--green)}
     #search-results{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);display:none;max-height:280px;overflow-y:auto}
     .si{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
@@ -146,6 +150,9 @@
 <div id="search-box">
   <input id="search-input" type="text" placeholder="Cercar arbre, espai o adreça…" autocomplete="off"/>
   <div id="search-results"></div>
+  <select id="dist-select" title="Seleccionar districte">
+    <option value="">Tota la ciutat</option>
+  </select>
 </div>
 
 <div id="panel">
@@ -533,13 +540,18 @@ map.on('load', async () => {
     try {
       const polys = districtes.features.filter(f => f.geometry && /Polygon/.test(f.geometry.type));
       const ciutat = polys.length > 1 ? turf.union(turf.featureCollection(polys)) : polys[0];
-      map.addSource('mask-src',{type:'geojson',data:turf.mask(ciutat)});
+      CITY_MASK = turf.mask(ciutat);
+      map.addSource('mask-src',{type:'geojson',data:CITY_MASK});
       map.addLayer({id:'mask-fora-bcn',type:'fill',source:'mask-src',
         paint:{'fill-color':'#0f1a24','fill-opacity':0.45}});
     } catch(err) { console.warn('No s\'ha pogut crear la màscara del límit municipal', err); }
 
     map.addLayer({id:'dist-fill',type:'fill',source:'dist-src',paint:{'fill-color':'#1a4a6b','fill-opacity':0.07}});
     map.addLayer({id:'dist-line',type:'line',source:'dist-src',paint:{'line-color':'#1a4a6b','line-width':1.8,'line-opacity':0.6,'line-dasharray':[4,3]}});
+    // Contorn del districte seleccionat
+    map.addSource('dist-sel-src',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+    map.addLayer({id:'dist-sel-line',type:'line',source:'dist-sel-src',paint:{'line-color':'#1a4a6b','line-width':3,'line-opacity':0.9}});
+    initDistrictSelect(districtes);
 
 
 
@@ -762,6 +774,7 @@ function initEvents(){
             <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
             <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
             ${rasterRow}${ciclismeRow}${batRow}${fireconnRow}
+            ${distZoomLink(p)}
           </div>`).addTo(map);
       } else {
         popup.setLngLat(e.lngLat).setHTML(`
@@ -769,6 +782,7 @@ function initEvents(){
             <div class="pt">${p.nom}</div>
             <div class="pr"><span class="pk">districte</span><span class="pv">${p.districte}</span></div>
             <div class="pr"><span class="pk">àrea</span><span class="pv">${p.area} km²</span></div>
+            ${distZoomLink(p)}
           </div>`).addTo(map);
       }
     } else if (rasterVal !== null || ciclismeVal !== null || batVal !== null || fireconnVal !== null) {
@@ -1225,6 +1239,50 @@ function toggleGroup(id) {
   body.style.maxHeight = isCollapsed ? '0' : '300px';
 }
 
+// ── SELECCIÓ DE DISTRICTE ────────────────────────────────────────────────────
+let DIST_FC = null, CITY_MASK = null;
+const distKey = f => (f.properties && (f.properties.districte || f.properties.nom)) || null;
+
+function initDistrictSelect(fc){
+  DIST_FC = fc;
+  const names = [...new Set(fc.features.map(distKey).filter(Boolean))]
+    .sort((a,b) => String(a).localeCompare(String(b),'ca',{numeric:true}));
+  const sel = document.getElementById('dist-select');
+  names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
+  sel.onchange = () => sel.value ? selectDistrict(sel.value) : resetZoom();
+}
+
+function selectDistrict(name){
+  if (!DIST_FC || typeof turf === 'undefined') return;
+  const feats = DIST_FC.features.filter(f => distKey(f) === String(name) && f.geometry && /Polygon/.test(f.geometry.type));
+  if (!feats.length) return;
+  let area;
+  try { area = feats.length > 1 ? turf.union(turf.featureCollection(feats)) : feats[0]; }
+  catch(err){ console.warn('Error unint el districte', err); area = feats[0]; }
+  const maskSrc = map.getSource('mask-src');
+  if (maskSrc) maskSrc.setData(turf.mask(area));
+  map.getSource('dist-sel-src').setData(area);
+  document.getElementById('dist-select').value = String(name);
+  popup.remove();
+  const b = turf.bbox(area);
+  map.fitBounds([[b[0],b[1]],[b[2],b[3]]], {padding:60, duration:800});
+}
+
+function clearDistrict(){
+  const maskSrc = map.getSource('mask-src');
+  if (maskSrc && CITY_MASK) maskSrc.setData(CITY_MASK);
+  const selSrc = map.getSource('dist-sel-src');
+  if (selSrc) selSrc.setData({type:'FeatureCollection',features:[]});
+  document.getElementById('dist-select').value = '';
+}
+
+function distZoomLink(p){
+  const name = p.districte || p.nom;
+  if (!name) return '';
+  const safe = String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  return `<a href="#" class="dist-zoom" data-dist="${safe}" onclick="event.preventDefault();selectDistrict(this.dataset.dist)">Zoom al districte ›</a>`;
+}
+
 // ── BASEMAP ───────────────────────────────────────────────────────────────────
 function setBM(id,btn){
   document.querySelectorAll('.bb').forEach(b=>b.classList.remove('active'));
@@ -1242,6 +1300,7 @@ function setBM(id,btn){
 }
 
 function resetZoom(){
+  clearDistrict();
   map.fitBounds(window._initialBounds, {padding:60, maxZoom:13, duration:800});
 }
 
