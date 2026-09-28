@@ -160,17 +160,10 @@
         </div>
       </div>
       <div class="li">
-        <div class="ll">Bio-troncs</div>
+        <div class="ll">Fusta morta (bio-troncs i cúmuls)</div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="meta-btn" onclick="openMeta('biotroncs')" title="Metadades ISO 19115">ⓘ</button>
           <label class="toggle"><input type="checkbox" onchange="toggleLayer('biotroncs',this.checked)"><span class="tt"></span></label>
-        </div>
-      </div>
-      <div class="li">
-        <div class="ll">Cúmuls de troncs</div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <button class="meta-btn" onclick="openMeta('cumuls')" title="Metadades ISO 19115">ⓘ</button>
-          <label class="toggle"><input type="checkbox" onchange="toggleLayer('cumuls',this.checked)"><span class="tt"></span></label>
         </div>
       </div>
       <div class="li">
@@ -803,8 +796,7 @@ function initEvents(){
 // ── LAYER TOGGLE ─────────────────────────────────────────────────────────────
 const LAYERS={
   arbres:    ['arbres','arbres-outer','cl-halo','cl-inner','cl-count'],
-  biotroncs: ['biotroncs','biotroncs-outer'],
-  cumuls:    ['cumuls','cumuls-outer'],
+  biotroncs: ['biotroncs','biotroncs-outer','cumuls','cumuls-outer'],
   picots:    ['picots-garser-gros','picots-garser-petit','picots-verd'],
   districtes:['dist-fill','dist-line'],
   zin:       ['zin-llenyos','zin-herbaci','zin-zina'],
@@ -818,8 +810,7 @@ const LAYERS={
 };
 const LEGEND={
   arbres:    ['leg-arbres'],
-  biotroncs: ['leg-biotroncs'],
-  cumuls:    ['leg-cumuls'],
+  biotroncs: ['leg-biotroncs','leg-cumuls'],
   picots:    ['leg-picots-1','leg-picots-2','leg-picots-3'],
   districtes:['leg-districtes'],
   zin:       ['leg-zin-1','leg-zin-2','leg-zin-3'],
@@ -832,7 +823,7 @@ const LEGEND={
   parcs:     ['leg-parcs']
 };
 
-const layerState = {arbres:true, biotroncs:false, cumuls:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, parcs:false, habitats:false};
+const layerState = {arbres:true, biotroncs:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, parcs:false, habitats:false};
 
 function toggleLayer(id,v){
   layerState[id] = v;
@@ -862,9 +853,8 @@ function toggleLayer(id,v){
   if(id==='parcs'){
     document.getElementById('sb-parcs').classList.toggle('off',!v);
   }
-  if(id==='biotroncs'||id==='cumuls'){
-    const hide = !layerState.biotroncs && !layerState.cumuls;
-    document.getElementById('sb-bio').classList.toggle('off', hide);
+  if(id==='biotroncs'){
+    document.getElementById('sb-bio').classList.toggle('off',!v);
   }
 }
 
@@ -946,27 +936,7 @@ const METADATA = {
   },
   biotroncs: {
     fileIdentifier:          '',
-    title:                   'Bio-troncs de Barcelona',
-    date:                    '',
-    dateType:                'publicació',
-    abstract:                '',
-    language:                'cat',
-    topicCategory:           'biota',
-    spatialRepresentationType: 'vector',
-    referenceSystemInfo:     'EPSG:4326 - WGS 84',
-    geographicBoundingBox:   '',
-    distributionFormat:      'GeoJSON',
-    pointOfContact:          '',
-    organisation:            '',
-    role:                    'propietari',
-    accessConstraints:       '',
-    useConstraints:          '',
-    metadataContact:         '',
-    dateStamp:               ''
-  },
-  cumuls: {
-    fileIdentifier:          '',
-    title:                   'Cúmuls de troncs de Barcelona',
+    title:                   'Fusta morta: bio-troncs i cúmuls de troncs de Barcelona',
     date:                    '',
     dateType:                'publicació',
     abstract:                '',
