@@ -326,7 +326,7 @@
 <div id="bm">
   <button class="bb active" onclick="setBM('gris',this)">Gris</button>
   <button class="bb" onclick="setBM('sat',this)">Sat</button>
-  <button class="bb" onclick="setBM('hibrid',this)">Híbrid</button>
+  <button class="bb" onclick="setBM('topo',this)">Topo</button>
   <button class="bb" onclick="setBM('blank',this)">Cap</button>
 </div>
 
@@ -359,14 +359,14 @@
 const BM = {
   osm:  ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
   gris: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'],
-  hibrid:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+  topo: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],
   sat:  ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}']
 };
 
 const BM_ATTR = {
   osm:   '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
   gris:  '© <a href="https://www.esri.com" target="_blank">Esri</a>, HERE, Garmin · © OpenStreetMap contributors',
-  hibrid: '© <a href="https://www.esri.com" target="_blank">Esri</a>, Maxar, Earthstar Geographics · HERE, Garmin, © OpenStreetMap contributors',
+  topo:  '© <a href="https://www.esri.com" target="_blank">Esri</a>, HERE, Garmin, FAO, NOAA, USGS · © OpenStreetMap contributors',
   sat:   '© <a href="https://www.esri.com" target="_blank">Esri</a>, DigitalGlobe, USDA, USGS',
   blank: ''
 };
@@ -374,15 +374,10 @@ const BM_ATTR = {
 const map = new maplibregl.Map({
   container:'map',
   style:{version:8,sources:{
-    basemap:{type:'raster',tiles:BM.gris,tileSize:256,attribution:'© Esri'},
-    // Capes de referència per al mode híbrid (carreteres + etiquetes)
-    'hib-transport':{type:'raster',tileSize:256,tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}']},
-    'hib-labels':{type:'raster',tileSize:256,tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}']}
+    basemap:{type:'raster',tiles:BM.gris,tileSize:256,attribution:'© Esri'}
   },
   layers:[
-    {id:'basemap',type:'raster',source:'basemap'},
-    {id:'hib-transport',type:'raster',source:'hib-transport',layout:{visibility:'none'}},
-    {id:'hib-labels',type:'raster',source:'hib-labels',layout:{visibility:'none'}}
+    {id:'basemap',type:'raster',source:'basemap'}
   ]},
   center:[2.168,41.393],zoom:12,minZoom:11,attributionControl:false
 });
@@ -1240,8 +1235,6 @@ function setBM(id,btn){
     map.setPaintProperty('basemap', 'raster-opacity', 1);
     map.getSource('basemap').setTiles(BM[id]);
   }
-  const hib = (id === 'hibrid') ? 'visible' : 'none';
-  ['hib-transport','hib-labels'].forEach(l => map.setLayoutProperty(l,'visibility',hib));
   document.getElementById('bm-attr').innerHTML = BM_ATTR[id] || '';
   const attrVisible = (id !== 'blank' && !!BM_ATTR[id]);
   document.getElementById('bm-attr').style.display = attrVisible ? 'block' : 'none';
