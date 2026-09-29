@@ -1272,10 +1272,17 @@ function toggleGroup(id) {
 let DIST_FC = null, CITY_MASK = null;
 const distKey = f => (f.properties && (f.properties.districte || f.properties.nom)) || null;
 
-let DIST_NAMES = [], DIST_CUR = '';
+let DIST_NAMES = [], DIST_CUR = '', DIST_LABEL = {};
 
 function initDistrictSelect(fc){
   DIST_FC = fc;
+  // Etiqueta visible: el camp 'nom' (el codi 'districte' només s'usa internament)
+  DIST_LABEL = {};
+  fc.features.forEach(f => {
+    const k = distKey(f); if (!k) return;
+    if (!DIST_LABEL[k] && f.properties.nom) DIST_LABEL[k] = String(f.properties.nom);
+  });
+  // Ordenats pel codi de districte (ordre oficial 1–10)
   DIST_NAMES = [...new Set(fc.features.map(distKey).filter(Boolean))]
     .sort((a,b) => String(a).localeCompare(String(b),'ca',{numeric:true}));
   const picker = document.getElementById('dist-picker');
@@ -1314,8 +1321,9 @@ function renderDistList(){
   const esc = v => String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   document.getElementById('dist-list').innerHTML =
     `<div class="dp-opt all${DIST_CUR ? '' : ' sel'}" data-v=""><span class="dp-dot"></span>Tota la ciutat</div>` +
-    DIST_NAMES.map(n => `<div class="dp-opt${String(n) === DIST_CUR ? ' sel' : ''}" data-v="${esc(n)}" role="option"><span class="dp-dot"></span>${esc(n)}</div>`).join('');
+    DIST_NAMES.map(n => `<div class="dp-opt${String(n) === DIST_CUR ? ' sel' : ''}" data-v="${esc(n)}" role="option"><span class="dp-dot"></span>${esc(distLabel(n))}</div>`).join('');
 }
+function distLabel(k){ return DIST_LABEL[k] || String(k); }
 function openDistList(){
   renderDistList();
   document.getElementById('dist-picker').classList.add('open');
@@ -1328,7 +1336,7 @@ function closeDistList(){
 }
 function setDistPickerValue(name){
   DIST_CUR = name ? String(name) : '';
-  document.getElementById('dist-val').textContent = DIST_CUR || 'Tota la ciutat';
+  document.getElementById('dist-val').textContent = DIST_CUR ? distLabel(DIST_CUR) : 'Tota la ciutat';
   document.getElementById('dist-picker').classList.toggle('active', !!DIST_CUR);
 }
 
