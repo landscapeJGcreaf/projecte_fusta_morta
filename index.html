@@ -36,8 +36,31 @@
     #search-box{position:absolute;top:16px;right:16px;z-index:10;width:230px;display:flex;flex-direction:column;gap:4px}
     #search-input{width:100%;padding:9px 12px;font-family:var(--sans);font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);box-shadow:var(--shadow);outline:none;transition:border-color .2s}
     #search-input::placeholder{color:var(--muted)}
-    #dist-select{width:100%;padding:8px 10px;font-family:var(--sans);font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);box-shadow:var(--shadow);outline:none;cursor:pointer}
-    #dist-select:focus{border-color:var(--green)}
+    /* SELECTOR DE DISTRICTE */
+    #dist-picker{position:relative;width:100%}
+    #dist-btn{width:100%;display:flex;align-items:center;gap:10px;padding:7px 10px 7px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);cursor:pointer;font-family:var(--sans);color:var(--text);text-align:left;transition:border-color .2s}
+    #dist-btn:hover,#dist-picker.open #dist-btn{border-color:var(--green)}
+    #dist-btn .dp-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+    #dist-btn .dp-lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    #dist-btn .dp-val{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #dist-picker.active #dist-btn{border-color:var(--green);box-shadow:0 0 0 2px rgba(45,90,61,.12),var(--shadow)}
+    #dist-picker.active .dp-val{color:var(--green)}
+    #dist-btn .dp-ico{width:16px;height:16px;flex:none;color:var(--green)}
+    #dist-btn .dp-caret{flex:none;font-size:10px;color:var(--muted);transition:transform .2s}
+    #dist-picker.open .dp-caret{transform:rotate(180deg)}
+    #dist-clear{display:none;flex:none;width:20px;height:20px;border:none;border-radius:50%;background:var(--bg);color:var(--muted);font-size:13px;line-height:20px;cursor:pointer;padding:0}
+    #dist-clear:hover{background:var(--border);color:var(--text)}
+    #dist-picker.active #dist-clear{display:block}
+    #dist-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:20;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 6px 24px rgba(0,0,0,.12);max-height:320px;overflow-y:auto;padding:4px;display:none}
+    #dist-picker.open #dist-list{display:block;animation:dpIn .15s ease-out}
+    @keyframes dpIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+    .dp-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:13px;border-radius:4px;cursor:pointer;color:var(--text)}
+    .dp-opt:hover,.dp-opt.kb{background:var(--bg)}
+    .dp-opt .dp-dot{width:6px;height:6px;border-radius:50%;background:transparent;flex:none}
+    .dp-opt.sel{color:var(--green);font-weight:600}
+    .dp-opt.sel .dp-dot{background:var(--green)}
+    .dp-opt.all{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--border);border-radius:4px 4px 0 0;margin-bottom:2px}
+    .dp-opt.all.sel{color:var(--green)}
     .dist-zoom{display:block;margin-top:6px;font-size:12px;color:var(--green);text-decoration:none;font-weight:600}
     .dist-zoom:hover{text-decoration:underline}
     #search-input:focus{border-color:var(--green)}
@@ -150,9 +173,15 @@
 <div id="search-box">
   <input id="search-input" type="text" placeholder="Cercar arbre, espai o adreça…" autocomplete="off"/>
   <div id="search-results"></div>
-  <select id="dist-select" title="Seleccionar districte">
-    <option value="">Tota la ciutat</option>
-  </select>
+  <div id="dist-picker">
+    <button id="dist-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+      <svg class="dp-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+      <span class="dp-txt"><span class="dp-lbl">Districte</span><span class="dp-val" id="dist-val">Tota la ciutat</span></span>
+      <span id="dist-clear" role="button" title="Treure la selecció">×</span>
+      <span class="dp-caret">▾</span>
+    </button>
+    <div id="dist-list" role="listbox"></div>
+  </div>
 </div>
 
 <div id="panel">
@@ -1243,13 +1272,64 @@ function toggleGroup(id) {
 let DIST_FC = null, CITY_MASK = null;
 const distKey = f => (f.properties && (f.properties.districte || f.properties.nom)) || null;
 
+let DIST_NAMES = [], DIST_CUR = '';
+
 function initDistrictSelect(fc){
   DIST_FC = fc;
-  const names = [...new Set(fc.features.map(distKey).filter(Boolean))]
+  DIST_NAMES = [...new Set(fc.features.map(distKey).filter(Boolean))]
     .sort((a,b) => String(a).localeCompare(String(b),'ca',{numeric:true}));
-  const sel = document.getElementById('dist-select');
-  names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
-  sel.onchange = () => sel.value ? selectDistrict(sel.value) : resetZoom();
+  const picker = document.getElementById('dist-picker');
+  const btn    = document.getElementById('dist-btn');
+  const list   = document.getElementById('dist-list');
+  renderDistList();
+
+  btn.addEventListener('click', e => {
+    if (e.target.id === 'dist-clear') { e.stopPropagation(); closeDistList(); resetZoom(); return; }
+    picker.classList.contains('open') ? closeDistList() : openDistList();
+  });
+  list.addEventListener('click', e => {
+    const opt = e.target.closest('.dp-opt'); if (!opt) return;
+    closeDistList();
+    opt.dataset.v ? selectDistrict(opt.dataset.v) : resetZoom();
+  });
+  document.addEventListener('click', e => { if (!picker.contains(e.target)) closeDistList(); });
+  btn.addEventListener('keydown', e => {
+    const opts = [...list.querySelectorAll('.dp-opt')];
+    let k = opts.findIndex(o => o.classList.contains('kb'));
+    if (e.key === 'Escape') { closeDistList(); return; }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!picker.classList.contains('open')) openDistList();
+      k = e.key === 'ArrowDown' ? Math.min(k + 1, opts.length - 1) : Math.max(k - 1, 0);
+      opts.forEach(o => o.classList.remove('kb'));
+      opts[k].classList.add('kb'); opts[k].scrollIntoView({block:'nearest'});
+    }
+    if (e.key === 'Enter' && picker.classList.contains('open') && k >= 0) {
+      e.preventDefault(); opts[k].click();
+    }
+  });
+}
+
+function renderDistList(){
+  const esc = v => String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  document.getElementById('dist-list').innerHTML =
+    `<div class="dp-opt all${DIST_CUR ? '' : ' sel'}" data-v=""><span class="dp-dot"></span>Tota la ciutat</div>` +
+    DIST_NAMES.map(n => `<div class="dp-opt${String(n) === DIST_CUR ? ' sel' : ''}" data-v="${esc(n)}" role="option"><span class="dp-dot"></span>${esc(n)}</div>`).join('');
+}
+function openDistList(){
+  renderDistList();
+  document.getElementById('dist-picker').classList.add('open');
+  document.getElementById('dist-btn').setAttribute('aria-expanded','true');
+  document.querySelector('#dist-list .dp-opt.sel')?.scrollIntoView({block:'nearest'});
+}
+function closeDistList(){
+  document.getElementById('dist-picker').classList.remove('open');
+  document.getElementById('dist-btn').setAttribute('aria-expanded','false');
+}
+function setDistPickerValue(name){
+  DIST_CUR = name ? String(name) : '';
+  document.getElementById('dist-val').textContent = DIST_CUR || 'Tota la ciutat';
+  document.getElementById('dist-picker').classList.toggle('active', !!DIST_CUR);
 }
 
 function selectDistrict(name){
@@ -1262,7 +1342,7 @@ function selectDistrict(name){
   const maskSrc = map.getSource('mask-src');
   if (maskSrc) maskSrc.setData(turf.mask(area));
   map.getSource('dist-sel-src').setData(area);
-  document.getElementById('dist-select').value = String(name);
+  setDistPickerValue(name);
   popup.remove();
   const b = turf.bbox(area);
   map.fitBounds([[b[0],b[1]],[b[2],b[3]]], {padding:60, duration:800});
@@ -1273,7 +1353,7 @@ function clearDistrict(){
   if (maskSrc && CITY_MASK) maskSrc.setData(CITY_MASK);
   const selSrc = map.getSource('dist-sel-src');
   if (selSrc) selSrc.setData({type:'FeatureCollection',features:[]});
-  document.getElementById('dist-select').value = '';
+  setDistPickerValue('');
 }
 
 function distZoomLink(p){
