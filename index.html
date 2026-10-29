@@ -304,6 +304,13 @@
             <label class="toggle"><input type="checkbox" checked onchange="toggleLayer('districtes',this.checked)"><span class="tt"></span></label>
           </div>
         </div>
+        <div class="li">
+          <div class="ll">Parc Natural de Collserola</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="meta-btn" onclick="openMeta('collserola')" title="Metadades ISO 19115">ⓘ</button>
+            <label class="toggle"><input type="checkbox" onchange="toggleLayer('collserola',this.checked)"><span class="tt"></span></label>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -356,6 +363,7 @@
       <div class="leg" id="leg-zin-1"><div class="ld" style="background:rgba(38,166,154,.5);border-radius:2px;width:16px;height:10px;border:2px solid #00695c"></div>ZIN Llenyós</div>
       <div class="leg" id="leg-zin-2"><div class="ld" style="background:rgba(227,178,60,.5);border-radius:2px;width:16px;height:10px;border:2px solid #9c7208"></div>ZIN Herbaci</div>
       <div class="leg" id="leg-zin-3"><div class="ld" style="background:rgba(0,77,64,.45);border-radius:2px;width:16px;height:10px;border:2px solid #00251f"></div>ZINA</div>
+      <div class="leg" id="leg-collserola"><div class="ld" style="background:transparent;border-top:3px dashed #6d4c41;border-radius:0;width:18px;height:0"></div>Límit Parc Natural de Collserola</div>
       <div class="leg" id="leg-districtes"><div class="ld" style="background:#1a4a6b;opacity:.5;border-radius:2px;width:16px;height:10px"></div>Límit de districte</div>
     </div>
   </div>
@@ -490,7 +498,7 @@ const DATA = {};
 map.on('load', async () => {
   try {
     setMsg('Carregant districtes…');
-    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats, refugis, parcs, fireconnData, franges] = await Promise.all([
+    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats, refugis, parcs, fireconnData, franges, collserola] = await Promise.all([
       fetch('dades/arbres_interes_local.geojson').then(r=>{ if(!r.ok) throw new Error('arbres_interes_local.geojson'); return r.json(); }),
       fetch('dades/biotroncs.geojson').then(r=>{ if(!r.ok) throw new Error('biotroncs.geojson'); return r.json(); }),
       fetch('dades/districtes_unitats.geojson').then(r=>{ if(!r.ok) throw new Error('districtes_unitats.geojson'); return r.json(); }),
@@ -505,6 +513,7 @@ map.on('load', async () => {
       fetch('dades/raster_fireconn.json').then(r=>{ if(!r.ok) throw new Error('raster_fireconn.json'); return r.json(); }),
       // Franges contra incendis (opcional: si falta, el visor carrega igualment)
       fetch('dades/franges_collserola.geojson').then(r=> r.ok ? r.json() : null).catch(()=>null),
+      fetch('dades/limit_collserola.geojson').then(r=> r.ok ? r.json() : null).catch(()=>null),
     ]);
 
     // Guarda per la taula
@@ -672,6 +681,13 @@ map.on('load', async () => {
       paint:{'line-color':'#2b8a3e','line-width':['interpolate',['linear'],['zoom'],11,0.8,16,2],'line-dasharray':[3,2]}});
     map.addLayer({id:'franges-line-feta',type:'line',source:'franges-src',filter:['==',['get','feta'],1],
       paint:{'line-color':'#1b5e20','line-width':['interpolate',['linear'],['zoom'],11,0.8,16,2]}});
+
+    // ── LÍMIT DEL PARC NATURAL DE COLLSEROLA (només contorn, sense popup) ──
+    map.addSource('collserola-src',{type:'geojson',data: collserola || {type:'FeatureCollection',features:[]}});
+    map.addLayer({id:'collserola-halo',type:'line',source:'collserola-src',
+      paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],11,3,16,5],'line-opacity':0.7}});
+    map.addLayer({id:'collserola-line',type:'line',source:'collserola-src',
+      paint:{'line-color':'#6d4c41','line-width':['interpolate',['linear'],['zoom'],11,1.6,16,3],'line-dasharray':[4,2]}});
 
     // ── REFUGIS BIODIVERSITAT ──
     map.addSource('refugis-src',{type:'geojson',data:refugis});
@@ -963,7 +979,8 @@ const LAYERS={
   habitats:  ['hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera'],
   refugis:   ['refugis-fill','refugis-line'],
   parcs:     ['parcs-poly-fill','parcs-poly-line'],
-  franges:   ['franges-fill-feta','franges-fill-pend','franges-line-feta','franges-line-pend']
+  franges:   ['franges-fill-feta','franges-fill-pend','franges-line-feta','franges-line-pend'],
+  collserola:['collserola-halo','collserola-line']
 };
 const LEGEND={
   arbres:    ['leg-arbres'],
@@ -978,10 +995,11 @@ const LEGEND={
   habitats:  ['leg-hab-1','leg-hab-2','leg-hab-3','leg-hab-4'],
   refugis:   ['leg-refugis'],
   parcs:     ['leg-parcs'],
-  franges:   ['leg-franges-1','leg-franges-2']
+  franges:   ['leg-franges-1','leg-franges-2'],
+  collserola:['leg-collserola']
 };
 
-const layerState = {arbres:true, biotroncs:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, parcs:false, franges:false, habitats:false};
+const layerState = {arbres:true, biotroncs:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, parcs:false, franges:false, collserola:false, habitats:false};
 
 // ── LLEGENDA CLICABLE: mostrar només una categoria ───────────────────────────
 const LEG_PICK = {
@@ -1181,6 +1199,26 @@ const METADATA = {
     distributionFormat:      'GeoJSON',
     pointOfContact:          '',
     organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  collserola: {
+    fileIdentifier:          'limit_xpn',
+    title:                   'Límit del Parc Natural de la Serra de Collserola',
+    date:                    '2010-10-19',
+    dateType:                'publicació',
+    abstract:                "Límit de l'espai protegit Parc Natural de la Serra de Collserola (Xarxa de Parcs Naturals). Pla especial de protecció del medi natural i del paisatge (1987, modificat el 2010). L'àmbit de dins del parc és competència del Consorci del Parc.",
+    language:                'cat',
+    topicCategory:           'límits administratius',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.001 E: 2.187 S: 41.384 N: 41.485',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            'Diputació de Barcelona',
     role:                    'propietari',
     accessConstraints:       '',
     useConstraints:          '',
