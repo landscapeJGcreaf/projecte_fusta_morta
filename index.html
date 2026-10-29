@@ -1227,7 +1227,7 @@ const METADATA = {
   },
   franges: {
     fileIdentifier:          'franges_collserola',
-    title:                   "Franges d'actuació contra incendis a Collserola",
+    title:                   "Franges de gestió — prevenció d'incendis",
     date:                    '',
     dateType:                'publicació',
     abstract:                "Franges de protecció contra incendis forestals al Parc Natural de Collserola, majoritàriament dins del municipi de Barcelona. Inclou l'estat d'execució, l'any d'execució, el finançament i la superfície (ha, calculada en ETRS89 / UTM 31N).",
@@ -1238,12 +1238,13 @@ const METADATA = {
     geographicBoundingBox:   'W: 2.055 E: 2.187 S: 41.386 N: 41.461',
     distributionFormat:      'GeoJSON',
     pointOfContact:          '',
-    organisation:            '',
-    role:                    'propietari',
+    organisation:            'Parc Natural de la Serra de Collserola',
+    role:                    'proveïdor',
     accessConstraints:       '',
     useConstraints:          '',
     metadataContact:         '',
-    dateStamp:               ''
+    dateStamp:               '',
+    lineage:                 'Cartografia facilitada pel Parc Natural de la Serra de Collserola'
   },
   refugis: {
     fileIdentifier:          '',
@@ -1385,7 +1386,8 @@ const META_LABELS = {
   accessConstraints:         'Restriccions d\'accés',
   useConstraints:            'Restriccions d\'ús',
   metadataContact:           'Responsable metadades',
-  dateStamp:                 'Data metadades'
+  dateStamp:                 'Data metadades',
+  lineage:                   'Font'
 };
 
 const META_SECTIONS = {
@@ -1394,6 +1396,7 @@ const META_SECTIONS = {
   'Distribució': ['distributionFormat'],
   'Responsabilitat': ['pointOfContact','organisation','role'],
   'Restriccions': ['accessConstraints','useConstraints'],
+  'Qualitat de les dades': ['lineage'],
   'Metadades': ['metadataContact','dateStamp']
 };
 
@@ -1402,7 +1405,10 @@ function openMeta(id) {
   if (!m) return;
   document.getElementById('meta-modal-title').textContent = m.title || 'Metadades ISO 19115';
   let html = '';
-  for (const [section, fields] of Object.entries(META_SECTIONS)) {
+  const OPTIONAL = ['lineage'];   // camps que només es mostren si la capa els té
+  for (const [section, all] of Object.entries(META_SECTIONS)) {
+    const fields = all.filter(f => !OPTIONAL.includes(f) || m[f]);
+    if (!fields.length) continue;
     html += `<div class="meta-section"><div class="meta-section-title">${section}</div>`;
     for (const field of fields) {
       const val = m[field];
