@@ -263,6 +263,13 @@
       </div>
       <div class="group-body collapsed" id="grp-body-altres" style="max-height:0">
         <div class="li">
+          <div class="ll">Franges contra incendis</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="meta-btn" onclick="openMeta('franges')" title="Metadades ISO 19115">ⓘ</button>
+            <label class="toggle"><input type="checkbox" onchange="toggleLayer('franges',this.checked)"><span class="tt"></span></label>
+          </div>
+        </div>
+        <div class="li">
           <div class="ll">Hàbitats forestals</div>
           <div style="display:flex;align-items:center;gap:6px">
             <button class="meta-btn" onclick="openMeta('habitats')" title="Metadades ISO 19115">ⓘ</button>
@@ -342,6 +349,8 @@
         <div class="lr-scale"><span id="lrmin-bat">—</span><span id="lrmid-bat"></span><span id="lrmax-bat">—</span></div>
         <div class="lr-q"><span>Baixa</span><span>Alta</span></div>
       </div>
+      <div class="leg" id="leg-franges-1"><div class="ld" style="background:rgba(43,138,62,.45);border:2px solid #1b5e20;border-radius:2px;width:16px;height:10px"></div>Franja executada</div>
+      <div class="leg" id="leg-franges-2"><div class="ld" style="background:rgba(140,233,154,.3);border:2px dashed #2b8a3e;border-radius:2px;width:16px;height:10px"></div>Franja pendent</div>
       <div class="leg" id="leg-parcs"><div class="ld" style="background:rgba(105,230,0,.35);border:1.5px solid #3d8a00;border-radius:2px;width:16px;height:10px"></div>Parcs i jardins</div>
       <div class="leg" id="leg-refugis"><div class="ld" style="background:#9b2d8e;opacity:.7;border-radius:2px;width:16px;height:10px"></div>Refugis de biodiversitat</div>
       <div class="leg" id="leg-zin-1"><div class="ld" style="background:rgba(38,166,154,.5);border-radius:2px;width:16px;height:10px;border:2px solid #00695c"></div>ZIN Llenyós</div>
@@ -363,13 +372,16 @@
         <div class="stat-box" id="sb-especies"><div class="stat-num" style="color:#555">3</div><div class="stat-lbl">Espècies picots</div></div>
       </div>
       <div class="stats-row" style="margin-top:8px">
-        <div class="stat-box" id="sb-zin" onclick="openTable('zin')"><div class="stat-num" style="color:#7bc77c" id="cnt-zin">—</div><div class="stat-lbl">Zones Interès Natural</div></div>
+        <div class="stat-box" id="sb-zin" onclick="openTable('zin')"><div class="stat-num" style="color:#26a69a" id="cnt-zin">—</div><div class="stat-lbl">Zones Interès Natural</div></div>
       </div>
       <div class="stats-row" style="margin-top:8px">
         <div class="stat-box" id="sb-parcs" onclick="openTable('parcs')"><div class="stat-num" style="color:#3d8a00" id="cnt-parcs">—</div><div class="stat-lbl">Parcs i jardins</div></div>
       </div>
       <div class="stats-row" style="margin-top:8px">
         <div class="stat-box" id="sb-refugis" onclick="openTable('refugis')"><div class="stat-num" style="color:#9b2d8e" id="cnt-refugis">—</div><div class="stat-lbl">Refugis biodiversitat</div></div>
+      </div>
+      <div class="stats-row" style="margin-top:8px">
+        <div class="stat-box" id="sb-franges" onclick="openTable('franges')"><div class="stat-num" style="color:#2b8a3e" id="cnt-franges">—</div><div class="stat-lbl">Franges contra incendis</div></div>
       </div>
       <div class="stats-row" style="margin-top:8px">
         <div class="stat-box" id="sb-habitats" onclick="openTable('habitats')"><div class="stat-num" style="color:#41ab5d" id="cnt-habitats">—</div><div class="stat-lbl">Hàbitats forestals</div></div>
@@ -478,7 +490,7 @@ const DATA = {};
 map.on('load', async () => {
   try {
     setMsg('Carregant districtes…');
-    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats, refugis, parcs, fireconnData] = await Promise.all([
+    const [arbres, biotroncs, districtes, picots, zin, batData, corredorsData, ciclismeData, habitats, refugis, parcs, fireconnData, franges] = await Promise.all([
       fetch('dades/arbres_interes_local.geojson').then(r=>{ if(!r.ok) throw new Error('arbres_interes_local.geojson'); return r.json(); }),
       fetch('dades/biotroncs.geojson').then(r=>{ if(!r.ok) throw new Error('biotroncs.geojson'); return r.json(); }),
       fetch('dades/districtes_unitats.geojson').then(r=>{ if(!r.ok) throw new Error('districtes_unitats.geojson'); return r.json(); }),
@@ -491,6 +503,8 @@ map.on('load', async () => {
       fetch('dades/refugis_biodiversitat.geojson').then(r=>{ if(!r.ok) throw new Error('refugis_biodiversitat.geojson'); return r.json(); }),
       fetch('dades/parcs_jardins_contorns.geojson').then(r=>{ if(!r.ok) throw new Error('parcs_jardins_contorns.geojson'); return r.json(); }),
       fetch('dades/raster_fireconn.json').then(r=>{ if(!r.ok) throw new Error('raster_fireconn.json'); return r.json(); }),
+      // Franges contra incendis (opcional: si falta, el visor carrega igualment)
+      fetch('dades/franges_collserola.geojson').then(r=> r.ok ? r.json() : null).catch(()=>null),
     ]);
 
     // Guarda per la taula
@@ -504,6 +518,7 @@ map.on('load', async () => {
     DATA.habitats = habitats.features;
     window.RASTER_FIRECONN = fireconnData;
     DATA.refugis = refugis.features;
+    DATA.franges = franges ? franges.features : [];
     DATA.parcs = parcs.features;
 
     // Rangs de valors per a les llegendes dels ràsters
@@ -519,6 +534,7 @@ map.on('load', async () => {
     document.getElementById('cnt-zin').textContent     = zin.features.length;
     document.getElementById('cnt-habitats').textContent = habitats.features.length;
     document.getElementById('cnt-refugis').textContent  = refugis.features.length;
+    document.getElementById('cnt-franges').textContent  = franges ? franges.features.length : '—';
     document.getElementById('cnt-parcs').textContent    = parcs.features.length;
 
     // Centra als arbres
@@ -646,6 +662,17 @@ map.on('load', async () => {
       .forEach(([id,tipus,col]) => map.addLayer({id,type:'line',source:'zin-src',filter:['==',['get','tipus'],tipus],
         paint:{'line-color':col,'line-width':['interpolate',['linear'],['zoom'],11,1,16,2.2],'line-opacity':0.95}}));
 
+    // ── FRANGES CONTRA INCENDIS (Collserola) ──
+    map.addSource('franges-src',{type:'geojson',data: franges || {type:'FeatureCollection',features:[]}});
+    map.addLayer({id:'franges-fill-pend',type:'fill',source:'franges-src',filter:['!=',['get','feta'],1],
+      paint:{'fill-color':'#8ce99a','fill-opacity':0.3}});
+    map.addLayer({id:'franges-fill-feta',type:'fill',source:'franges-src',filter:['==',['get','feta'],1],
+      paint:{'fill-color':'#2b8a3e','fill-opacity':0.45}});
+    map.addLayer({id:'franges-line-pend',type:'line',source:'franges-src',filter:['!=',['get','feta'],1],
+      paint:{'line-color':'#2b8a3e','line-width':['interpolate',['linear'],['zoom'],11,0.8,16,2],'line-dasharray':[3,2]}});
+    map.addLayer({id:'franges-line-feta',type:'line',source:'franges-src',filter:['==',['get','feta'],1],
+      paint:{'line-color':'#1b5e20','line-width':['interpolate',['linear'],['zoom'],11,0.8,16,2]}});
+
     // ── REFUGIS BIODIVERSITAT ──
     map.addSource('refugis-src',{type:'geojson',data:refugis});
     map.addLayer({id:'refugis-fill',type:'fill',source:'refugis-src',
@@ -711,6 +738,23 @@ function showParcPolyPopup(lngLat,p){
       <div class="pr"><span class="pk">adreça</span><span class="pv">${p.adreca||'—'}</span></div>
       <div class="pr"><span class="pk">superfície</span><span class="pv">${fmtSup(p.superficie)}</span></div>
       <div class="pr"><span class="pk">districte</span><span class="pv">${distName(p.districte)}</span></div>
+    </div>`).addTo(map);
+}
+
+function showFrangesPopup(lngLat,p){
+  const feta = p.feta === 1 || p.feta === '1';
+  const tag  = feta ? '<div class="ptag" style="background:#2b8a3e22;color:#1b5e20">Executada</div>'
+                    : '<div class="ptag" style="background:#8ce99a44;color:#2b8a3e">Pendent</div>';
+  const ha   = (p.area_ha != null && p.area_ha !== '') ? Number(p.area_ha).toLocaleString('ca',{maximumFractionDigits:2}) + ' ha' : '—';
+  popup.setLngLat(lngLat).setHTML(`
+    <div class="pi">
+      ${tag}
+      <div class="pt">${p.nom||'Franja'}</div>
+      <div class="pr"><span class="pk">codi</span><span class="pv">${p.codi||'—'}</span></div>
+      <div class="pr"><span class="pk">superfície</span><span class="pv">${ha}</span></div>
+      <div class="pr"><span class="pk">any execució</span><span class="pv">${p.anyexec||'—'}</span></div>
+      <div class="pr"><span class="pk">finançament</span><span class="pv">${p.financament||'—'}</span></div>
+      <div class="pr"><span class="pk">${p.districte ? 'districte' : 'municipi'}</span><span class="pv">${p.districte||p.municipi||'—'}</span></div>
     </div>`).addTo(map);
 }
 
@@ -832,6 +876,7 @@ function initEvents(){
     const habFeats  = map.queryRenderedFeatures(e.point,{layers:['hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera']});
     const refFeats  = map.queryRenderedFeatures(e.point,{layers:['refugis-fill']});
     const parcPoly  = map.queryRenderedFeatures(e.point,{layers:['parcs-poly-fill']});
+    const frangFeats = map.queryRenderedFeatures(e.point,{layers:['franges-fill-feta','franges-fill-pend']});
     const dist     = map.queryRenderedFeatures(e.point,{layers:['dist-fill']});
     const rasterVal = getRasterVal(e.lngLat);
     const ciclismeVal = getRasterCiclismeVal(e.lngLat);
@@ -844,6 +889,7 @@ function initEvents(){
     else if (picots.length)   showPicotPopup(e.lngLat, picots[0].properties);
     else if (zinFeats.length) showZinPopup(e.lngLat, zinFeats[0].properties);
     else if (habFeats.length)  showHabPopup(e.lngLat, habFeats[0].properties);
+    else if (frangFeats.length) showFrangesPopup(e.lngLat, frangFeats[0].properties);
     else if (refFeats.length)  showRefugisPopup(e.lngLat, refFeats[0].properties);
     else if (parcPoly.length)  showParcPolyPopup(e.lngLat, parcPoly[0].properties);
     else if (dist.length) {
@@ -892,7 +938,7 @@ function initEvents(){
     }
   });
   map.on('mousemove', e => {
-    const hits=map.queryRenderedFeatures(e.point,{layers:['arbres','biotroncs','cumuls','picots-garser-gros','picots-garser-petit','picots-verd','zin-llenyos','zin-herbaci','zin-zina','hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera','refugis-fill','parcs-poly-fill','dist-fill']});
+    const hits=map.queryRenderedFeatures(e.point,{layers:['arbres','biotroncs','cumuls','picots-garser-gros','picots-garser-petit','picots-verd','zin-llenyos','zin-herbaci','zin-zina','hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera','refugis-fill','parcs-poly-fill','franges-fill-feta','franges-fill-pend','dist-fill']});
     map.getCanvas().style.cursor=hits.length?'pointer':'';
   });
   map.on('click','cl-halo', e => {
@@ -916,7 +962,8 @@ const LAYERS={
   raster_fireconn: ['raster-fireconn-layer'],
   habitats:  ['hab-aciculifolis','hab-esclerofil','hab-caducifolis','hab-ribera'],
   refugis:   ['refugis-fill','refugis-line'],
-  parcs:     ['parcs-poly-fill','parcs-poly-line']
+  parcs:     ['parcs-poly-fill','parcs-poly-line'],
+  franges:   ['franges-fill-feta','franges-fill-pend','franges-line-feta','franges-line-pend']
 };
 const LEGEND={
   arbres:    ['leg-arbres'],
@@ -930,16 +977,18 @@ const LEGEND={
   raster_fireconn: ['leg-fireconn'],
   habitats:  ['leg-hab-1','leg-hab-2','leg-hab-3','leg-hab-4'],
   refugis:   ['leg-refugis'],
-  parcs:     ['leg-parcs']
+  parcs:     ['leg-parcs'],
+  franges:   ['leg-franges-1','leg-franges-2']
 };
 
-const layerState = {arbres:true, biotroncs:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, parcs:false, habitats:false};
+const layerState = {arbres:true, biotroncs:false, picots:false, districtes:true, zin:false, raster:false, raster_ciclisme:false, raster_bat:false, raster_fireconn:false, refugis:false, parcs:false, franges:false, habitats:false};
 
 // ── LLEGENDA CLICABLE: mostrar només una categoria ───────────────────────────
 const LEG_PICK = {
   biotroncs: {'leg-biotroncs':['biotroncs','biotroncs-outer'], 'leg-cumuls':['cumuls','cumuls-outer']},
   picots:    {'leg-picots-1':['picots-garser-gros'], 'leg-picots-2':['picots-garser-petit'], 'leg-picots-3':['picots-verd']},
   habitats:  {'leg-hab-1':['hab-aciculifolis'], 'leg-hab-2':['hab-esclerofil'], 'leg-hab-3':['hab-caducifolis'], 'leg-hab-4':['hab-ribera']},
+  franges:   {'leg-franges-1':['franges-fill-feta','franges-line-feta'], 'leg-franges-2':['franges-fill-pend','franges-line-pend']},
   zin:       {'leg-zin-1':['zin-llenyos','zin-llenyos-line'], 'leg-zin-2':['zin-herbaci','zin-herbaci-line'], 'leg-zin-3':['zin-zina','zin-zina-line']}
 };
 const LEG_FOCUS = {};
@@ -999,6 +1048,9 @@ function toggleLayer(id,v){
   }
   if(id==='parcs'){
     document.getElementById('sb-parcs').classList.toggle('off',!v);
+  }
+  if(id==='franges'){
+    document.getElementById('sb-franges').classList.toggle('off',!v);
   }
   if(id==='biotroncs'){
     document.getElementById('sb-bio').classList.toggle('off',!v);
@@ -1126,6 +1178,26 @@ const METADATA = {
     spatialRepresentationType: 'vector',
     referenceSystemInfo:     'EPSG:4326 - WGS 84',
     geographicBoundingBox:   'W: 2.052 E: 2.228 S: 41.317 N: 41.468',
+    distributionFormat:      'GeoJSON',
+    pointOfContact:          '',
+    organisation:            '',
+    role:                    'propietari',
+    accessConstraints:       '',
+    useConstraints:          '',
+    metadataContact:         '',
+    dateStamp:               ''
+  },
+  franges: {
+    fileIdentifier:          'franges_collserola',
+    title:                   "Franges d'actuació contra incendis a Collserola",
+    date:                    '',
+    dateType:                'publicació',
+    abstract:                "Franges de protecció contra incendis forestals al Parc Natural de Collserola, majoritàriament dins del municipi de Barcelona. Inclou l'estat d'execució, l'any d'execució, el finançament i la superfície (ha, calculada en ETRS89 / UTM 31N).",
+    language:                'cat',
+    topicCategory:           'medi ambient',
+    spatialRepresentationType: 'vector',
+    referenceSystemInfo:     'EPSG:4326 - WGS 84',
+    geographicBoundingBox:   'W: 2.055 E: 2.187 S: 41.386 N: 41.461',
     distributionFormat:      'GeoJSON',
     pointOfContact:          '',
     organisation:            '',
@@ -1481,7 +1553,8 @@ const TABLE_CONFIG = {
   zin:    { title:"🌿 Zones d'Interès Natural",  cols:['tipus','codi','tipus_sub','sup_m2','data_alta'] },
   habitats: { title:"🌲 Hàbitats forestals", cols:['tipus','subtipus','cod_eunis','area_m2','amenaca','hic'] },
   refugis:  { title:"🌿 Refugis de biodiversitat", cols:['nom','districte','ha','ident'] },
-  parcs:    { title:"🌳 Parcs i jardins", cols:['nom','adreca','superficie','districte'] }
+  parcs:    { title:"🌳 Parcs i jardins", cols:['nom','adreca','superficie','districte'] },
+  franges:  { title:"🔥 Franges contra incendis", cols:['nom','codi','area_ha','feta','anyexec','financament','districte'] }
 };
 
 let currentTable = null;
@@ -1544,7 +1617,7 @@ function openTable(id) {
 }
 
 function clearSelection() {
-  ['zin-selected-src','refugis-selected-src','parcs-selected-src'].forEach(srcId => {
+  ['zin-selected-src','refugis-selected-src','parcs-selected-src','franges-selected-src'].forEach(srcId => {
     if (map.getSource(srcId)) {
       map.getSource(srcId).setData({type:'FeatureCollection',features:[]});
     }
@@ -1574,7 +1647,7 @@ function zoomToFeature(id, idx) {
     tr.style.fontWeight = i===idx ? '600' : '';
   });
 
-  if (id === 'zin' || id === 'refugis' || id === 'parcs') {
+  if (id === 'zin' || id === 'refugis' || id === 'parcs' || id === 'franges') {
     // Per polígons: calcula el centre i ressalta
     const geom = feat.geometry;
     let allCoords = [];
@@ -1608,6 +1681,7 @@ function zoomToFeature(id, idx) {
 
     if (id === 'zin') showZinPopup([centerLng, centerLat], p);
     else if (id === 'parcs') showParcPolyPopup([centerLng, centerLat], p);
+    else if (id === 'franges') showFrangesPopup([centerLng, centerLat], p);
     else showRefugisPopup([centerLng, centerLat], p);
 
   } else {
